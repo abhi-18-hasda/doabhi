@@ -1,0 +1,2346 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#090d16">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DoAbhi">
+    <title>DoAbhi — Action Now. Master Daily.</title>
+
+    <!-- Dynamic App Icon & Manifest Links (Populated on Startup via HTML5 Canvas) -->
+    <link id="dynamic-favicon" rel="icon" type="image/png" href="">
+    <link id="dynamic-touch-icon" rel="apple-touch-icon" href="">
+    <link id="dynamic-manifest" rel="manifest" href="">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace']
+                    },
+                    colors: {
+                        abhi: {
+                            50: '#ecfeff',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#4f46e5',
+                            700: '#4338ca'
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+
+    <!-- Canvas Confetti for Dopamine Celebrations -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #070b14;
+            color: #f1f5f9;
+            overflow-x: hidden;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #090d16; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+        /* Hide scrollbar for horizontal pill strips */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes floatUpXP {
+            0% { opacity: 0; transform: translateY(10px) scale(0.9); }
+            25% { opacity: 1; transform: translateY(-6px) scale(1.06); }
+            80% { opacity: 1; transform: translateY(-22px) scale(1); }
+            100% { opacity: 0; transform: translateY(-36px) scale(0.95); }
+        }
+        .animate-xp {
+            animation: floatUpXP 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes pulseBorder {
+            0%, 100% { border-color: rgba(34, 211, 238, 0.45); box-shadow: 0 0 20px rgba(6, 182, 212, 0.15); }
+            50% { border-color: rgba(16, 185, 129, 0.75); box-shadow: 0 0 28px rgba(16, 185, 129, 0.3); }
+        }
+        .spotlight-glow {
+            animation: pulseBorder 3s infinite;
+        }
+
+        .inshorts-card {
+            transition: transform 0.22s ease, border-color 0.22s ease;
+        }
+        .inshorts-card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-950">
+
+    <!-- FLOATING XP POPUP -->
+    <div id="xp-floating-badge" class="hidden fixed top-20 right-6 z-50 pointer-events-none bg-gradient-to-r from-cyan-400 via-indigo-500 to-emerald-400 text-slate-950 font-extrabold px-4 py-2 rounded-full shadow-2xl items-center gap-2 text-sm">
+        <i class="fa-solid fa-bolt"></i>
+        <span id="xp-floating-text">+25 XP!</span>
+    </div>
+
+    <!-- CELEBRATION TOAST -->
+    <div id="toast-container" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md bg-slate-900/95 backdrop-blur-xl border-2 border-cyan-400/70 text-white px-4 py-3.5 rounded-2xl shadow-2xl items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <div id="toast-icon" class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-xl shrink-0">🚀</div>
+            <div>
+                <div id="toast-title" class="text-[11px] font-extrabold uppercase tracking-wider text-cyan-400">DOABHI MOMENTUM!</div>
+                <div id="toast-message" class="text-xs sm:text-sm font-bold text-white mt-0.5">Ye yeeyeyee! Action completed!</div>
+            </div>
+        </div>
+        <button onclick="DoAbhi.hideToast()" class="text-slate-400 hover:text-white p-1">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <!-- TOP STICKY HEADER -->
+    <header class="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2">
+            
+            <!-- INNOVATIVE DOABHI LOGO & LEVEL BAR -->
+            <div class="flex items-center gap-3">
+                <button onclick="DoAbhi.celebrateNow('DoAbhi! Action Now, Master Daily! ⚡', 5)" title="Click for instant DoAbhi hype!" class="relative group focus:outline-none">
+                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-400 via-indigo-500 to-emerald-400 p-[2px] shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition duration-200">
+                        <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center relative overflow-hidden">
+                            <!-- Custom SVG DoAbhi Emblem: Hexagon Shield + Lightning Action Check -->
+                            <svg class="w-7 h-7" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="doabhiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#22d3ee" />
+                                        <stop offset="50%" stop-color="#6366f1" />
+                                        <stop offset="100%" stop-color="#10b981" />
+                                    </linearGradient>
+                                </defs>
+                                <!-- Outer Hex Shield -->
+                                <path d="M32 4L56 17.5V46.5L32 60L8 46.5V17.5L32 4Z" stroke="url(#doabhiGrad)" stroke-width="4" fill="rgba(15, 23, 42, 0.85)" stroke-linejoin="round"/>
+                                <!-- Lightning Bolt + Checkmark Hybrid -->
+                                <path d="M35 13L19 34H31L27 51L46 28H34L35 13Z" fill="url(#doabhiGrad)"/>
+                                <!-- Check Accent Dot -->
+                                <circle cx="48" cy="16" r="3" fill="#22d3ee"/>
+                            </svg>
+                        </div>
+                    </div>
+                </button>
+
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-extrabold text-lg sm:text-xl tracking-tight bg-gradient-to-r from-white via-cyan-200 to-emerald-300 bg-clip-text text-transparent">DoAbhi</span>
+                        <span id="header-level-pill" class="px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 uppercase tracking-wider">Lvl 1</span>
+                    </div>
+                    <!-- XP Progress Bar -->
+                    <div class="flex items-center gap-2 mt-0.5">
+                        <div class="w-24 sm:w-32 h-1.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700/70">
+                            <div id="header-xp-bar" class="h-full bg-gradient-to-r from-cyan-400 via-indigo-500 to-emerald-400 transition-all duration-500" style="width: 35%"></div>
+                        </div>
+                        <span id="header-xp-text" class="text-[10px] font-semibold text-slate-400">0 XP</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DESKTOP NAVIGATION TABS -->
+            <nav class="hidden lg:flex items-center gap-1 bg-slate-900/90 p-1 rounded-2xl border border-slate-800">
+                <button onclick="DoAbhi.switchTab('tasks')" id="desk-tab-tasks" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>DoAbhi Tasks</span>
+                    <span id="badge-tasks-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-800 text-cyan-300">0</span>
+                </button>
+                <button onclick="DoAbhi.switchTab('shorts')" id="desk-tab-shorts" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-newspaper"></i>
+                    <span>AbhiShorts</span>
+                    <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300">Daily</span>
+                </button>
+                <button onclick="DoAbhi.switchTab('revise')" id="desk-tab-revise" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-brain"></i>
+                    <span>Topic Revise</span>
+                    <span id="badge-revise-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-800 text-purple-300">0</span>
+                </button>
+                <button onclick="DoAbhi.switchTab('notes')" id="desk-tab-notes" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-book-bookmark"></i>
+                    <span>Notes Vault</span>
+                    <span id="badge-notes-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-800 text-amber-300">0</span>
+                </button>
+                <button onclick="DoAbhi.switchTab('timeline')" id="desk-tab-timeline" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span>Wins & Streak</span>
+                </button>
+            </nav>
+
+            <!-- RIGHT ACTION CONTROLS -->
+            <div class="flex items-center gap-1.5 sm:gap-2.5">
+                <!-- Manage Topics Quick Button -->
+                <button onclick="DoAbhi.openTopicModal()" class="px-2.5 py-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 font-bold text-xs flex items-center gap-1.5 transition" title="Add or Manage Your Learning Topics">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span class="hidden sm:inline">Topics</span>
+                </button>
+
+                <!-- Streak Flame Pill -->
+                <button onclick="DoAbhi.switchTab('timeline')" class="flex items-center gap-1 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 px-2.5 py-1.5 rounded-xl text-amber-300 font-extrabold text-xs transition" title="Active Learning Streak">
+                    <span>🔥</span>
+                    <span id="header-streak-count">1d</span>
+                </button>
+
+                <!-- Sound Toggle -->
+                <button onclick="DoAbhi.toggleSound()" id="sound-toggle-btn" class="p-2 rounded-xl bg-slate-900 border border-slate-800 text-emerald-400 hover:bg-slate-800 text-xs transition" title="Toggle Celebration Sound">
+                    <i id="sound-toggle-icon" class="fa-solid fa-volume-high"></i>
+                </button>
+
+                <!-- Phone Setup & Backup Modal Button -->
+                <button onclick="DoAbhi.openSetupModal()" class="bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-extrabold px-3 py-1.5 rounded-xl text-xs shadow-md shadow-cyan-500/20 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                    <span class="hidden sm:inline">Phone App / Backup</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MOBILE BOTTOM NAVIGATION BAR -->
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/90 px-1 py-1.5 flex justify-around items-center">
+        <button onclick="DoAbhi.switchTab('tasks')" id="mob-tab-tasks" class="flex flex-col items-center py-1 px-2.5 rounded-xl text-[11px] font-bold transition">
+            <i class="fa-solid fa-bolt text-base mb-0.5"></i>
+            <span>DoAbhi</span>
+        </button>
+        <button onclick="DoAbhi.switchTab('shorts')" id="mob-tab-shorts" class="flex flex-col items-center py-1 px-2.5 rounded-xl text-[11px] font-bold transition">
+            <i class="fa-solid fa-newspaper text-base mb-0.5"></i>
+            <span>AbhiShorts</span>
+        </button>
+        <button onclick="DoAbhi.switchTab('revise')" id="mob-tab-revise" class="flex flex-col items-center py-1 px-2.5 rounded-xl text-[11px] font-bold transition">
+            <i class="fa-solid fa-brain text-base mb-0.5"></i>
+            <span>Revise</span>
+        </button>
+        <button onclick="DoAbhi.switchTab('notes')" id="mob-tab-notes" class="flex flex-col items-center py-1 px-2.5 rounded-xl text-[11px] font-bold transition">
+            <i class="fa-solid fa-book-bookmark text-base mb-0.5"></i>
+            <span>Notes</span>
+        </button>
+        <button onclick="DoAbhi.switchTab('timeline')" id="mob-tab-timeline" class="flex flex-col items-center py-1 px-2.5 rounded-xl text-[11px] font-bold transition">
+            <i class="fa-solid fa-trophy text-base mb-0.5"></i>
+            <span>Wins</span>
+        </button>
+    </nav>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-5 pb-24 lg:pb-12 space-y-6">
+
+        <!-- TOP COMPACT STATUS & TOPIC BAR -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800/90 rounded-2xl p-4 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex flex-col items-center justify-center shrink-0">
+                    <span id="daily-goal-fraction" class="text-sm font-black text-cyan-300">0/5</span>
+                    <span class="text-[9px] uppercase font-bold text-slate-400">Today</span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 id="rank-title-banner" class="text-sm sm:text-base font-extrabold text-white">Action Starter · Keep Moving!</h2>
+                        <span class="text-xs text-emerald-400 font-bold" id="today-status-badge">⚡ Ready</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-0.5">Your active topics power your <strong class="text-cyan-300">Todo List</strong>, <strong class="text-emerald-300">Daily AbhiShorts</strong>, <strong class="text-purple-300">Topic Revisions</strong> & <strong class="text-amber-300">Reference Notes</strong>.</p>
+                </div>
+            </div>
+
+            <!-- Active Topics Horizontal Strip -->
+            <div class="w-full md:w-auto flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 md:pb-0">
+                <span class="text-[11px] font-bold text-slate-400 shrink-0 mr-1"><i class="fa-solid fa-tags text-indigo-400 mr-1"></i>Topics:</span>
+                <div id="global-topics-strip" class="flex items-center gap-1.5"></div>
+                <button onclick="DoAbhi.openTopicModal()" class="shrink-0 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 text-[11px] font-bold transition">
+                    + Add Topic
+                </button>
+            </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 1: DOABHI TASKS (INNOVATIVE ACTION TODO LIST - NOT A JIRA BOARD) -->
+        <!-- =================================================================== -->
+        <section id="view-tasks" class="space-y-6">
+            
+            <!-- DOABHI SPOTLIGHT: FOCUS RIGHT NOW + POMODORO TIMER -->
+            <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/60 border-2 rounded-2xl p-4 sm:p-5 spotlight-glow">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="space-y-1">
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-400/30 text-cyan-300 text-[11px] font-extrabold uppercase tracking-wider">
+                            <i class="fa-solid fa-crosshairs animate-spin" style="animation-duration: 6s;"></i>
+                            <span>DoAbhi Spotlight · Action Right Now</span>
+                        </div>
+                        <h3 id="spotlight-task-title" class="text-base sm:text-lg font-extrabold text-white pt-1">Select any task below with "🎯 Focus" to lock in!</h3>
+                        <p id="spotlight-task-meta" class="text-xs text-slate-400">Run a 25-minute deep-focus sprint or complete it right now for bonus XP.</p>
+                    </div>
+
+                    <!-- Built-in Sprint Timer -->
+                    <div class="flex flex-wrap items-center gap-2.5 bg-slate-950/90 border border-slate-800 px-4 py-3 rounded-2xl shrink-0">
+                        <div class="text-center pr-2 border-r border-slate-800">
+                            <div id="pomodoro-display" class="font-mono text-xl sm:text-2xl font-black text-emerald-400 tracking-tight">25:00</div>
+                            <div class="text-[10px] uppercase font-bold text-slate-500">Focus Sprint</div>
+                        </div>
+                        <button onclick="DoAbhi.toggleTimer()" id="pomodoro-start-btn" class="px-3.5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-xs transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-play"></i>
+                            <span>Start</span>
+                        </button>
+                        <button onclick="DoAbhi.resetTimer()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition" title="Reset 25m Timer">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </button>
+                        <button onclick="DoAbhi.completeFocusSprint()" class="px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500 border border-emerald-500/40 text-emerald-300 hover:text-slate-950 font-extrabold text-xs transition" title="Finish Sprint & Claim +40 XP">
+                            <span>⚡ Done Sprint (+40 XP)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QUICK-ADD ENHANCED TODO FORM -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-cyan-400"></i>
+                        <span>Add New Action Task (+25 XP on completion)</span>
+                    </h3>
+                    <span class="text-[11px] text-slate-400">Simple, fast checklist — zero clutter</span>
+                </div>
+                <form onsubmit="DoAbhi.addTask(event)" class="space-y-3">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                        <div class="md:col-span-6">
+                            <input type="text" id="task-input-title" required placeholder="What will you learn, practice, or build today? (e.g., Practice Binary Tree BFS)" class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-400 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none transition">
+                        </div>
+                        <div class="md:col-span-3">
+                            <select id="task-input-topic" class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-400 rounded-xl px-3 py-2.5 text-sm text-cyan-300 font-semibold focus:outline-none transition"></select>
+                        </div>
+                        <div class="md:col-span-3">
+                            <select id="task-input-priority" class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-400 rounded-xl px-3 py-2.5 text-sm text-slate-200 font-semibold focus:outline-none transition">
+                                <option value="High">🔥 High Impact</option>
+                                <option value="Medium" selected>⚡ Core Practice</option>
+                                <option value="Quick">🌱 10-Min Quick Win</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                        <input type="text" id="task-input-notes" placeholder="Optional sub-steps, link, or quick reminder note..." class="flex-1 bg-slate-950/70 border border-slate-800/90 focus:border-indigo-400 rounded-xl px-4 py-2 text-xs text-slate-300 placeholder-slate-500 focus:outline-none transition">
+                        <button type="submit" class="bg-gradient-to-r from-cyan-500 via-indigo-500 to-emerald-500 hover:opacity-95 text-slate-950 font-extrabold px-6 py-2.5 rounded-xl text-xs sm:text-sm shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 shrink-0 transition">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Add to DoAbhi List</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- TASK FILTERS & PROGRESS BAR -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/50 border border-slate-800/80 p-3.5 rounded-2xl">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <button onclick="DoAbhi.setTaskStatusFilter('all')" id="filter-status-all" class="px-3 py-1.5 rounded-xl text-xs font-bold transition">All</button>
+                    <button onclick="DoAbhi.setTaskStatusFilter('pending')" id="filter-status-pending" class="px-3 py-1.5 rounded-xl text-xs font-bold transition">Pending Action</button>
+                    <button onclick="DoAbhi.setTaskStatusFilter('completed')" id="filter-status-completed" class="px-3 py-1.5 rounded-xl text-xs font-bold transition">Completed ✓</button>
+                </div>
+
+                <!-- Topic Filter Select -->
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400 font-semibold">Topic:</span>
+                    <select onchange="DoAbhi.setTaskTopicFilter(this.value)" id="task-filter-topic" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 font-semibold focus:outline-none">
+                        <option value="all">All Topics</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- VERTICAL INNOVATIVE TODO CHECKLIST -->
+            <div id="tasks-list-container" class="space-y-3"></div>
+        </section>
+
+
+        <!-- =================================================================== -->
+        <!-- SECTION 2: ABHISHORTS (INSHORTS-STYLE 60-WORD DAILY TOPIC BYTES)     -->
+        <!-- =================================================================== -->
+        <section id="view-shorts" class="hidden space-y-6">
+            
+            <!-- AbhiShorts Header & Controls -->
+            <div class="bg-gradient-to-r from-slate-900 via-indigo-950/60 to-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] font-extrabold uppercase">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Inshorts-Style Daily Tech Digest</span>
+                    </div>
+                    <h2 class="text-xl font-extrabold text-white mt-1">AbhiShorts · 60-Word Daily Topic Feed 📱</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Bite-sized, high-signal cards tailored to your Topics. Save any byte to your <strong class="text-amber-300">Notes Vault</strong> or <strong class="text-purple-300">Revision Deck</strong> in 1 tap!</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="DoAbhi.shuffleShorts()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-300 font-bold text-xs flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-shuffle"></i>
+                        <span>Shuffle Daily Feed</span>
+                    </button>
+                    <button onclick="DoAbhi.openCustomShortModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shadow-md transition">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Create Custom 60w Card</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Topic Filter Pills for AbhiShorts -->
+            <div id="shorts-topic-pills" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1"></div>
+
+            <!-- Inshorts Cards Grid / Stack -->
+            <div id="shorts-feed-container" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
+        </section>
+
+
+        <!-- =================================================================== -->
+        <!-- SECTION 3: TOPIC-WISE REVISION HUB (SPACED REPETITION)              -->
+        <!-- =================================================================== -->
+        <section id="view-revise" class="hidden space-y-6">
+            
+            <!-- Header & Add Concept Form -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
+                            <span>🧠 Topic-Wise Daily Revision Hub</span>
+                        </h2>
+                        <p class="text-xs text-slate-400">Test your recall topic-by-topic. Click <strong class="text-purple-300">"⚡ Revised Today (+30 XP)"</strong> to level up concept mastery!</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="DoAbhi.setReviseDueFilter(!DoAbhi.state.reviseOnlyDueToday)" id="revise-due-toggle-btn" class="px-3.5 py-2 rounded-xl text-xs font-extrabold border transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-fire"></i>
+                            <span id="revise-due-toggle-text">Showing: All Cards</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Add Revision Flashcard Form -->
+                <form onsubmit="DoAbhi.addRevisionCard(event)" class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                    <div class="md:col-span-3">
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">Select Topic *</label>
+                        <select id="revise-input-topic" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-purple-300 font-bold focus:outline-none focus:border-purple-500"></select>
+                    </div>
+                    <div class="md:col-span-4">
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">Concept / Interview Question *</label>
+                        <input type="text" id="revise-input-title" required placeholder="e.g., @Controller vs @RestController in Spring" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500">
+                    </div>
+                    <div class="md:col-span-5">
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">Key Takeaway / Flashcard Answer *</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="revise-input-answer" required placeholder="Core explanation, complexity, or key syntax to recall..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500">
+                            <button type="submit" class="bg-purple-600 hover:bg-purple-500 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs shrink-0 shadow-lg shadow-purple-600/20 transition">
+                                + Add Card
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Topic-Wise Mastery Strip -->
+            <div id="revise-topic-pills" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1"></div>
+
+            <!-- Revision Cards Grid -->
+            <div id="revise-cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+
+
+        <!-- =================================================================== -->
+        <!-- SECTION 4: REFERENCE NOTES VAULT ("NOTES & NODES" FOR FUTURE REF)   -->
+        <!-- =================================================================== -->
+        <section id="view-notes" class="hidden space-y-6">
+            
+            <!-- Notes Header & Editor -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-book-bookmark text-amber-400"></i>
+                            <span>Reference Notes & Knowledge Nodes Vault</span>
+                        </h2>
+                        <p class="text-xs text-slate-400">Type and save code snippets, SQL queries, architecture notes, or vocabulary for instant future reference.</p>
+                    </div>
+                    <span class="text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-xl">Auto-Saved Locally</span>
+                </div>
+
+                <!-- Rich Reference Note Form -->
+                <form onsubmit="DoAbhi.saveReferenceNote(event)" class="space-y-3">
+                    <input type="hidden" id="note-edit-id" value="">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                        <div class="md:col-span-6">
+                            <input type="text" id="note-input-title" required placeholder="Note Title (e.g., AWS EC2 User Data Apache Bootstrap Script)" class="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none">
+                        </div>
+                        <div class="md:col-span-4">
+                            <select id="note-input-topic" class="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 rounded-xl px-3 py-2.5 text-sm text-amber-300 font-bold focus:outline-none"></select>
+                        </div>
+                        <div class="md:col-span-2 flex items-center">
+                            <label class="w-full flex items-center justify-center gap-2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-300 cursor-pointer hover:border-amber-400/50">
+                                <input type="checkbox" id="note-input-pinned" class="accent-amber-400">
+                                <span>📌 Pin Note</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <textarea id="note-input-content" rows="4" required placeholder="Type your reference notes, key points, commands, or code snippet here for future lookup..." class="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 rounded-xl p-4 text-xs sm:text-sm font-mono text-slate-200 placeholder-slate-500 focus:outline-none leading-relaxed"></textarea>
+                    </div>
+                    <div class="flex items-center justify-end gap-2">
+                        <button type="button" id="note-cancel-edit-btn" onclick="DoAbhi.cancelNoteEdit()" class="hidden px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold">Cancel Edit</button>
+                        <button type="submit" id="note-submit-btn" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold px-6 py-2.5 rounded-xl text-xs sm:text-sm shadow-lg shadow-amber-500/20 flex items-center gap-2 transition">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span id="note-submit-label">Save Reference Note (+20 XP)</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Search & Topic Filter for Notes -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-3 text-slate-500 text-xs"></i>
+                    <input type="text" id="notes-search-input" oninput="DoAbhi.renderNotes()" placeholder="Search saved reference notes by title, topic, or keyword..." class="w-full bg-slate-900 border border-slate-800 focus:border-amber-400 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none">
+                </div>
+                <div id="notes-topic-pills" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1"></div>
+            </div>
+
+            <!-- Saved Notes Grid -->
+            <div id="notes-grid-container" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
+        </section>
+
+
+        <!-- =================================================================== -->
+        <!-- SECTION 5: WIN TIMELINE, 14-DAY HEATMAP & TROPHY CABINET            -->
+        <!-- =================================================================== -->
+        <section id="view-timeline" class="hidden space-y-6">
+            
+            <!-- 14-Day Consistency Heatmap Card -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                    <div>
+                        <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-fire text-amber-400"></i>
+                            <span>14-Day DoAbhi Consistency Heatmap</span>
+                        </h3>
+                        <p class="text-xs text-slate-400">Every completed task, revised concept, or saved note lights up your daily streak matrix!</p>
+                    </div>
+                    <div class="text-xs font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-xl">
+                        Best Streak: <span id="best-streak-label">5 Days</span>
+                    </div>
+                </div>
+                <div id="heatmap-strip-container" class="grid grid-cols-7 sm:grid-cols-14 gap-2"></div>
+            </div>
+
+            <!-- Log Daily Win Form -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <h3 class="text-sm font-extrabold uppercase tracking-wider text-amber-300 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Log Today's Achievement / Milestone (+50 XP)</span>
+                </h3>
+                <form onsubmit="DoAbhi.addTimelineWin(event)" class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                    <div class="md:col-span-6">
+                        <input type="text" id="win-input-title" required placeholder="What did you achieve or conquer today? (e.g., Solved 3 Binary Tree problems!)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400">
+                    </div>
+                    <div class="md:col-span-3">
+                        <select id="win-input-topic" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-emerald-300 font-bold focus:outline-none"></select>
+                    </div>
+                    <div class="md:col-span-3 flex gap-2">
+                        <select id="win-input-mood" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none">
+                            <option value="🔥">🔥 Fire</option>
+                            <option value="🚀">🚀 Shipped</option>
+                            <option value="💡">💡 Aha!</option>
+                            <option value="🏆">🏆 Win</option>
+                        </select>
+                        <button type="submit" class="flex-1 bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 font-extrabold px-4 py-2.5 rounded-xl text-xs shadow-lg transition">
+                            Log Win
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Trophy Cabinet Grid -->
+            <div class="space-y-3">
+                <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-medal text-amber-400"></i>
+                    <span>DoAbhi Milestone Trophies (Tap any unlocked badge to celebrate!)</span>
+                </h3>
+                <div id="trophies-grid-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+            </div>
+
+            <!-- Chronological Timeline Feed -->
+            <div class="space-y-3">
+                <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-timeline text-cyan-400"></i>
+                    <span>Chronological Daily Learning & Achievement Log</span>
+                </h3>
+                <div id="timeline-feed-container" class="relative pl-6 sm:pl-8 border-l-2 border-indigo-500/40 space-y-4 my-2"></div>
+            </div>
+        </section>
+
+    </main>
+
+
+    <!-- =================================================================== -->
+    <!-- MODAL 1: MANAGE & ADD LEARNING TOPICS                               -->
+    <!-- =================================================================== -->
+    <div id="modal-topics" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-extrabold text-base text-white flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-cyan-400"></i>
+                    <span>Manage Your Learning Topics</span>
+                </h3>
+                <button onclick="DoAbhi.closeModals()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-xs text-slate-400">Adding a topic automatically enables it across your Tasks, Reference Notes, Topic Revisions, and generates new daily 60-word cards in <strong class="text-cyan-300">AbhiShorts</strong>!</p>
+            <form onsubmit="DoAbhi.addTopic(event)" class="flex gap-2">
+                <input type="text" id="new-topic-input" required placeholder="e.g., System Design, Docker, React..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-cyan-400">
+                <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold px-4 py-2 rounded-xl text-xs transition">+ Add</button>
+            </form>
+            <div id="modal-topics-list" class="flex flex-wrap gap-2 pt-2 max-h-60 overflow-y-auto"></div>
+        </div>
+    </div>
+
+
+    <!-- =================================================================== -->
+    <!-- MODAL 2: CREATE CUSTOM 60-WORD ABHISHORT BYTE                       -->
+    <!-- =================================================================== -->
+    <div id="modal-custom-short" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-extrabold text-base text-white flex items-center gap-2">
+                    <i class="fa-solid fa-newspaper text-emerald-400"></i>
+                    <span>Create Custom 60-Word AbhiShort</span>
+                </h3>
+                <button onclick="DoAbhi.closeModals()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="DoAbhi.saveCustomShort(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Topic</label>
+                    <select id="short-input-topic" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-cyan-300 font-bold"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Headline *</label>
+                    <input type="text" id="short-input-title" required placeholder="e.g., Why Spring @Transactional ignores private methods" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Crisp 60-Word Summary *</label>
+                    <textarea id="short-input-summary" rows="3" required placeholder="Explain the core concept in 2-3 punchy sentences..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-white"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Code Snippet / Practical Example (Optional)</label>
+                    <textarea id="short-input-code" rows="2" placeholder="e.g., @Transactional(propagation = Propagation.REQUIRES_NEW)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-emerald-300"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="DoAbhi.closeModals()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 font-extrabold text-xs">Publish Byte (+25 XP)</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- =================================================================== -->
+    <!-- MODAL 3: PHONE INSTALL, ANTI-SUSPENSION GUIDE & JSON BACKUP         -->
+    <!-- =================================================================== -->
+    <div id="modal-setup" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-extrabold text-base sm:text-lg text-white flex items-center gap-2">
+                    <i class="fa-solid fa-mobile-screen-button text-cyan-400"></i>
+                    <span>Install DoAbhi on Phone & Data Backup</span>
+                </h3>
+                <button onclick="DoAbhi.closeModals()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- One-Click Native PWA Install Prompt (if supported by browser) -->
+            <div class="bg-gradient-to-r from-cyan-500/15 to-indigo-500/15 border border-cyan-500/40 rounded-2xl p-4 space-y-2">
+                <div class="text-xs font-extrabold uppercase text-cyan-300">📲 Step 1: Install With Custom DoAbhi Icon</div>
+                <p class="text-xs text-slate-300 leading-relaxed">DoAbhi automatically generates a high-resolution custom app icon and Web Manifest right inside this single file. Once opened via a web link on Android Chrome, tap the button below or open Chrome's <strong>3-Dot Menu → "Add to Home screen" / "Install app"</strong>.</p>
+                <button onclick="DoAbhi.triggerPWAInstall()" id="pwa-install-btn" class="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-xs transition flex items-center justify-center gap-2 shadow-lg">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Install DoAbhi App Icon Now</span>
+                </button>
+            </div>
+
+            <!-- Why Netlify Suspended Before & How to Fix It Permanently -->
+            <div class="bg-slate-950/90 border border-amber-500/30 rounded-2xl p-4 space-y-2">
+                <div class="text-xs font-extrabold uppercase text-amber-400">🛡️ Why Did Your Previous Link Get Suspended? (And Permanent Fix)</div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    When you drag-and-drop a file onto Netlify Drop <em>without logging in</em>, Netlify creates a temporary demo link that automatically expires after 1 to 24 hours.
+                </p>
+                <ul class="text-xs text-slate-300 space-y-1.5 list-disc pl-4">
+                    <li><strong>Permanent Fix A (Netlify Free Account):</strong> Sign in with a free email/GitHub account on <span class="text-cyan-300 font-mono">app.netlify.com/drop</span> before dragging your <span class="font-mono text-white">index.html</span> folder. Your DoAbhi app will stay live forever and never suspend!</li>
+                    <li><strong>Permanent Fix B (tiiny.host or GitHub Pages):</strong> Upload <span class="font-mono text-white">index.html</span> to GitHub Pages or Vercel for a permanent URL.</li>
+                </ul>
+            </div>
+
+            <!-- Backup & Restore Controls -->
+            <div class="space-y-2 pt-2 border-t border-slate-800">
+                <div class="text-xs font-extrabold uppercase text-slate-300">💾 Backup, Sync & Restore Your Data</div>
+                <div class="flex flex-wrap gap-2.5">
+                    <button onclick="DoAbhi.exportBackup()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-300 font-bold text-xs flex items-center gap-2 transition">
+                        <i class="fa-solid fa-file-export"></i>
+                        <span>Export JSON Backup</span>
+                    </button>
+                    <label class="cursor-pointer px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-emerald-300 font-bold text-xs flex items-center gap-2 transition">
+                        <i class="fa-solid fa-file-import"></i>
+                        <span>Import Backup</span>
+                        <input type="file" accept=".json" onchange="DoAbhi.importBackup(event)" class="hidden">
+                    </label>
+                    <button onclick="DoAbhi.resetData()" class="px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 font-bold text-xs flex items-center gap-2 transition">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>Reset Demo Data</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- =================================================================== -->
+    <!-- PURE MODULAR VANILLA JAVASCRIPT ENGINE (ZERO CDN RACE CONDITIONS)   -->
+    <!-- =================================================================== -->
+    <script>
+        const DoAbhi = {
+            storageKey: 'doabhi_app_v1',
+            activeTab: 'tasks',
+            taskStatusFilter: 'all',
+            taskTopicFilter: 'all',
+            shortsTopicFilter: 'all',
+            reviseTopicFilter: 'all',
+            notesTopicFilter: 'all',
+            deferredInstallPrompt: null,
+            timerInterval: null,
+            timerSeconds: 25 * 60,
+            timerRunning: false,
+
+            state: {
+                xp: 420,
+                streak: 5,
+                bestStreak: 5,
+                soundEnabled: true,
+                lastActiveDate: '',
+                spotlightTaskId: 101,
+                reviseOnlyDueToday: false,
+                activityLog: {},
+                topics: [
+                    'Java & Spring Boot',
+                    'AWS Cloud',
+                    'DSA & Problem Solving',
+                    'PostgreSQL & SQL',
+                    'English Vocabulary'
+                ],
+                tasks: [],
+                shorts: [],
+                revisions: [],
+                notes: [],
+                timeline: []
+            },
+
+            // 1. INITIALIZATION
+            init() {
+                this.setupDynamicPWA();
+                this.loadState();
+                this.populateAllTopicSelects();
+                this.renderAll();
+
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    this.deferredInstallPrompt = e;
+                });
+            },
+
+            // Dynamically draw custom 512x512 DoAbhi App Icon & inject Web App Manifest
+            setupDynamicPWA() {
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 512;
+                    canvas.height = 512;
+                    const ctx = canvas.getContext('2d');
+
+                    // Dark Tech Rounded Background
+                    ctx.fillStyle = '#070b14';
+                    ctx.fillRect(0, 0, 512, 512);
+
+                    // Gradient Hex Glow
+                    const grad = ctx.createLinearGradient(60, 60, 452, 452);
+                    grad.addColorStop(0, '#22d3ee');
+                    grad.addColorStop(0.5, '#6366f1');
+                    grad.addColorStop(1, '#10b981');
+
+                    // Draw Hexagon Shield
+                    ctx.strokeStyle = grad;
+                    ctx.lineWidth = 28;
+                    ctx.lineJoin = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(256, 48);
+                    ctx.lineTo(440, 152);
+                    ctx.lineTo(440, 360);
+                    ctx.lineTo(256, 464);
+                    ctx.lineTo(72, 360);
+                    ctx.lineTo(72, 152);
+                    ctx.closePath();
+                    ctx.stroke();
+
+                    // Draw Lightning Bolt Inside
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.moveTo(280, 110);
+                    ctx.lineTo(155, 272);
+                    ctx.lineTo(250, 272);
+                    ctx.lineTo(220, 402);
+                    ctx.lineTo(365, 232);
+                    ctx.lineTo(270, 232);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    const iconUrl = canvas.toDataURL('image/png');
+                    document.getElementById('dynamic-favicon').href = iconUrl;
+                    document.getElementById('dynamic-touch-icon').href = iconUrl;
+
+                    const manifest = {
+                        name: 'DoAbhi — Action Now. Master Daily.',
+                        short_name: 'DoAbhi',
+                        description: 'Personal Tech Learning Todo, 60-Word AbhiShorts, Topic Revision & Reference Notes Vault',
+                        start_url: '.',
+                        display: 'standalone',
+                        background_color: '#070b14',
+                        theme_color: '#070b14',
+                        icons: [
+                            { src: iconUrl, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+                        ]
+                    };
+                    const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+                    document.getElementById('dynamic-manifest').href = URL.createObjectURL(blob);
+                } catch (e) {
+                    console.warn('PWA icon setup skipped:', e);
+                }
+            },
+
+            getTodayISO() {
+                return new Date().toISOString().split('T')[0];
+            },
+
+            loadState() {
+                const today = this.getTodayISO();
+                const raw = localStorage.getItem(this.storageKey);
+                if (raw) {
+                    try {
+                        const parsed = JSON.parse(raw);
+                        this.state = { ...this.state, ...parsed };
+                        return;
+                    } catch (e) {
+                        console.error('State parse error, seeding defaults', e);
+                    }
+                }
+                this.seedRichDefaults(today);
+            },
+
+            saveState() {
+                localStorage.setItem(this.storageKey, JSON.stringify(this.state));
+            },
+
+            seedRichDefaults(today) {
+                // Seed last 7 days consistency
+                const log = {};
+                for (let i = 0; i < 6; i++) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    const iso = d.toISOString().split('T')[0];
+                    log[iso] = i === 0 ? 2 : (i % 2 === 0 ? 3 : 1);
+                }
+                this.state.activityLog = log;
+                this.state.lastActiveDate = today;
+
+                // Default Action Tasks (Clean checklist, NOT Jira)
+                this.state.tasks = [
+                    {
+                        id: 101,
+                        title: 'Practice Binary Tree Level Order & Zigzag Traversal (BFS Queue Pattern)',
+                        topic: 'DSA & Problem Solving',
+                        priority: 'High',
+                        notes: 'Use LinkedList Queue, track level size in outer loop, and collect nodes level-by-level.',
+                        completed: false,
+                        createdAt: today
+                    },
+                    {
+                        id: 102,
+                        title: 'Revise Spring IoC Bean Lifecycle (@PostConstruct, @PreDestroy & BeanPostProcessor)',
+                        topic: 'Java & Spring Boot',
+                        priority: 'High',
+                        notes: 'Verify order: Constructor -> Dependency Injection -> @PostConstruct -> Custom init -> Ready.',
+                        completed: false,
+                        createdAt: today
+                    },
+                    {
+                        id: 103,
+                        title: 'Test AWS EC2 User Data Bootstrap Script & IAM Role Attachment',
+                        topic: 'AWS Cloud',
+                        priority: 'Medium',
+                        notes: 'Ensure #!/bin/bash installs httpd/nginx and writes index.html on instance launch.',
+                        completed: false,
+                        createdAt: today
+                    },
+                    {
+                        id: 104,
+                        title: 'Write PostgreSQL Query with Composite Primary Key & Foreign Key Constraint',
+                        topic: 'PostgreSQL & SQL',
+                        priority: 'Medium',
+                        notes: 'Test index column ordering (most selective column first) with EXPLAIN ANALYZE.',
+                        completed: true,
+                        createdAt: today
+                    },
+                    {
+                        id: 105,
+                        title: 'Practice 3 Executive Vocabulary Words in Technical Sentences',
+                        topic: 'English Vocabulary',
+                        priority: 'Quick',
+                        notes: 'Use "Autonomous", "Meticulous", and "Scalable" in architecture explanations.',
+                        completed: false,
+                        createdAt: today
+                    }
+                ];
+
+                // Pre-loaded Inshorts-style 60-word Daily Bytes
+                this.state.shorts = [
+                    {
+                        id: 201,
+                        topic: 'Java & Spring Boot',
+                        title: 'Spring IoC Bean Lifecycle: @PostConstruct vs @PreDestroy',
+                        summary: 'Spring instantiates a bean first, injects its @Autowired dependencies second, and only then invokes @PostConstruct. This makes @PostConstruct ideal for warming caches or validating config after injection. Right before the application context closes, @PreDestroy fires to cleanly release sockets or thread pools.',
+                        code: '@PostConstruct\npublic void initCache() { /* Dependencies are guaranteed non-null here */ }',
+                        readToday: false
+                    },
+                    {
+                        id: 202,
+                        topic: 'Java & Spring Boot',
+                        title: '@Controller vs @RestController Under the Hood',
+                        summary: '@Controller is a classic Spring MVC stereotype used for returning view templates, requiring @ResponseBody on methods to serialize JSON. @RestController is a convenience meta-annotation combining @Controller + @ResponseBody automatically, serializing every return object directly into HTTP JSON/XML via Jackson HttpMessageConverters.',
+                        code: '@RestController // Equals @Controller + @ResponseBody\n@RequestMapping("/api/v1/campaigns")',
+                        readToday: false
+                    },
+                    {
+                        id: 203,
+                        topic: 'Java & Spring Boot',
+                        title: 'How Spring Boot Auto-Configuration Actually Works',
+                        summary: '@SpringBootApplication includes @EnableAutoConfiguration, which scans META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports. Using @ConditionalOnClass and @ConditionalOnMissingBean, Spring Boot automatically registers beans (like DataSource or DispatcherServlet) only if the library is on your classpath and you have not defined a custom bean.',
+                        code: '@ConditionalOnClass(DataSource.class)\n@ConditionalOnMissingBean(DataSource.class)',
+                        readToday: false
+                    },
+                    {
+                        id: 204,
+                        topic: 'Java & Spring Boot',
+                        title: 'TransactionSynchronizationManager: Run Code ONLY After DB Commit',
+                        summary: 'Sending an email or Kafka event inside an @Transactional method is risky if the transaction rolls back at the last millisecond. TransactionSynchronizationManager lets you register an afterCommit() callback on the current thread so side-effects execute strictly after PostgreSQL confirms the commit.',
+                        code: 'TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {\n  public void afterCommit() { notifyUsers(); }\n});',
+                        readToday: false
+                    },
+                    {
+                        id: 205,
+                        topic: 'Java & Spring Boot',
+                        title: 'Concurrent Callable<T> vs Runnable in ExecutorService',
+                        summary: 'While Runnable.run() returns void and cannot throw checked exceptions, Callable<V>.call() returns a typed result and can throw checked exceptions. Submitting a Callable to an ExecutorService returns a Future<V> (or CompletableFuture), enabling parallel API/database calls that merge cleanly.',
+                        code: 'Future<Report> future = executor.submit(() -> generateCampaignReport(tenantId));',
+                        readToday: false
+                    },
+                    {
+                        id: 206,
+                        topic: 'AWS Cloud',
+                        title: 'AWS IAM Policy Evaluation Logic: The Golden Rule',
+                        summary: 'Every AWS request starts as an Implicit Deny. If an Explicit Deny exists anywhere across IAM Identity Policies, S3 Bucket Policies, or Session Policies, the request is immediately rejected—forever. Only when zero Explicit Denies exist AND at least one Explicit Allow matches does AWS grant access.',
+                        code: '1. Explicit Deny? -> DENY\n2. Explicit Allow? -> ALLOW\n3. Default -> IMPLICIT DENY',
+                        readToday: false
+                    },
+                    {
+                        id: 207,
+                        topic: 'AWS Cloud',
+                        title: 'AWS Cognito: User Pools vs Identity Pools (DVA-C02 Must-Know)',
+                        summary: 'Cognito User Pools handle Authentication (Sign-up, Sign-in, MFA, returning JWT tokens). Cognito Identity Pools handle Authorization (exchanging that JWT for temporary AWS STS credentials via IAM Roles so mobile/web clients can upload directly to S3 or query DynamoDB).',
+                        code: 'User Pool = Who are you? (JWT)\nIdentity Pool = What AWS resources can you touch? (STS IAM Role)',
+                        readToday: false
+                    },
+                    {
+                        id: 208,
+                        topic: 'AWS Cloud',
+                        title: 'EC2 User Data Bootstrap Scripts: Root Execution & Logs',
+                        summary: 'EC2 User Data scripts run automatically as the root user only on the very first launch of an instance. If your HTML page does not load on port 80, inspect /var/log/cloud-init-output.log and verify both your Security Group inbound HTTP rule and systemctl enable --now httpd.',
+                        code: '#!/bin/bash\nyum update -y && yum install -y httpd\nsystemctl enable --now httpd',
+                        readToday: false
+                    },
+                    {
+                        id: 209,
+                        topic: 'DSA & Problem Solving',
+                        title: 'Binary Tree BFS Template: Capturing Level Size',
+                        summary: 'Whenever a problem asks for level-by-level processing (Right Side View, Zigzag Level Order, Average of Levels), capture int size = queue.size() before the inner loop. That snapshot isolates the exact nodes belonging to the current depth before their children enter the queue.',
+                        code: 'int size = q.size();\nfor (int i = 0; i < size; i++) {\n  TreeNode cur = q.poll();\n}',
+                        readToday: false
+                    },
+                    {
+                        id: 210,
+                        topic: 'DSA & Problem Solving',
+                        title: 'Lowest Common Ancestor (LCA) in O(N) Single Pass',
+                        summary: 'To find the LCA of nodes p and q in a binary tree, recurse left and right. If the current node is null, p, or q, return it immediately. If both left and right recursive calls return non-null, the current node is the exact split point (LCA)!',
+                        code: 'if (root == null || root == p || root == q) return root;\nreturn (left != null && right != null) ? root : (left != null ? left : right);',
+                        readToday: false
+                    },
+                    {
+                        id: 211,
+                        topic: 'PostgreSQL & SQL',
+                        title: 'PostgreSQL Composite Keys & Left-Prefix Index Rule',
+                        summary: 'A composite primary key or index on (tenant_id, campaign_id) automatically accelerates queries filtering by tenant_id alone OR both tenant_id and campaign_id. However, queries filtering only by the second column (campaign_id) cannot use the B-Tree index efficiently without scanning.',
+                        code: 'PRIMARY KEY (tenant_id, campaign_id) -- Fast for WHERE tenant_id = ?',
+                        readToday: false
+                    },
+                    {
+                        id: 212,
+                        topic: 'English Vocabulary',
+                        title: 'Executive Vocabulary: Autonomous, Meticulous & Articulate',
+                        summary: '• Autonomous: Self-governing and operating independently ("an autonomous microservice or engineer").\n• Meticulous: Showing extreme care about minute details ("meticulous code review").\n• Articulate: Expressing complex ideas clearly and fluently ("articulate trade-offs to stakeholders").',
+                        code: '"Manav is an autonomous engineer who is meticulous in testing and articulate in design reviews."',
+                        readToday: false
+                    },
+                    {
+                        id: 213,
+                        topic: 'English Vocabulary',
+                        title: 'Idiom & Business Term: "Pinch of Salt" & "Scalable / Robust"',
+                        summary: '• Take with a pinch of salt: View an exaggerated claim with healthy skepticism (e.g., vendor benchmarks).\n• Scalable: Able to handle exponentially growing load gracefully.\n• Robust: Resilient against invalid inputs or network failures without crashing.',
+                        code: '"Take unverified latency benchmarks with a pinch of salt; build a robust, scalable pipeline."',
+                        readToday: false
+                    }
+                ];
+
+                // Topic-Wise Revision Cards
+                this.state.revisions = [
+                    {
+                        id: 301,
+                        topic: 'Java & Spring Boot',
+                        title: 'What is the difference between @Controller and @RestController?',
+                        answer: '@Controller returns a View name (unless annotated with @ResponseBody), while @RestController combines @Controller + @ResponseBody to serialize return objects directly to JSON/XML.',
+                        revisions: 3,
+                        lastRevised: today,
+                        revealed: false
+                    },
+                    {
+                        id: 302,
+                        topic: 'Java & Spring Boot',
+                        title: 'How does Java 8 Optional.orElse() differ from Optional.orElseGet()?',
+                        answer: 'orElse(T) eagerly evaluates its default object even when the Optional is present! orElseGet(Supplier) is lazy and only executes the Supplier function when the Optional is empty.',
+                        revisions: 2,
+                        lastRevised: '2026-11-04',
+                        revealed: false
+                    },
+                    {
+                        id: 303,
+                        topic: 'AWS Cloud',
+                        title: 'How do you grant an EC2 instance permission to read an S3 bucket without hardcoding AWS keys?',
+                        answer: 'Create an IAM Role with an S3 Read policy and attach it to the EC2 instance as an Instance Profile. The AWS SDK fetches temporary STS credentials automatically from instance metadata.',
+                        revisions: 4,
+                        lastRevised: today,
+                        revealed: false
+                    },
+                    {
+                        id: 304,
+                        topic: 'DSA & Problem Solving',
+                        title: 'When should you prefer BFS over DFS on a Binary Tree?',
+                        answer: 'Prefer BFS (Queue) when finding the shortest path, minimum depth, or level-by-level order. Prefer DFS (Recursion/Stack) when exploring full root-to-leaf paths, tree diameter, or LCA.',
+                        revisions: 2,
+                        lastRevised: '2026-11-03',
+                        revealed: false
+                    },
+                    {
+                        id: 305,
+                        topic: 'PostgreSQL & SQL',
+                        title: 'What is the difference between WHERE and HAVING in SQL?',
+                        answer: 'WHERE filters individual rows BEFORE grouping (GROUP BY) and cannot use aggregate functions. HAVING filters aggregated groups AFTER GROUP BY.',
+                        revisions: 3,
+                        lastRevised: '2026-11-04',
+                        revealed: false
+                    },
+                    {
+                        id: 306,
+                        topic: 'English Vocabulary',
+                        title: 'Define "Autonomous", "Meticulous", and "Take with a pinch of salt"',
+                        answer: 'Autonomous = working independently; Meticulous = paying extreme attention to detail; Pinch of salt = maintaining healthy skepticism rather than accepting something blindly.',
+                        revisions: 5,
+                        lastRevised: today,
+                        revealed: false
+                    }
+                ];
+
+                // Reference Notes Vault
+                this.state.notes = [
+                    {
+                        id: 401,
+                        title: 'AWS EC2 User Data Script to Host HTML App on Launch',
+                        topic: 'AWS Cloud',
+                        pinned: true,
+                        createdAt: today,
+                        content: `#!/bin/bash\nyum update -y\nyum install -y httpd\nsystemctl start httpd\nsystemctl enable httpd\necho "<h1>DoAbhi Live on AWS EC2!</h1>" > /var/www/html/index.html`
+                    },
+                    {
+                        id: 402,
+                        title: 'Spring Boot Bean Lifecycle & Transaction Synchronization Notes',
+                        topic: 'Java & Spring Boot',
+                        pinned: true,
+                        createdAt: today,
+                        content: `1. IoC Container instantiates Bean via Constructor.\n2. Dependency Injection populates @Autowired fields.\n3. @PostConstruct runs (safe to access injected beans).\n4. Use TransactionSynchronizationManager.registerSynchronization() to trigger post-commit webhooks safely.`
+                    },
+                    {
+                        id: 403,
+                        title: 'PostgreSQL Composite Key & Foreign Key Syntax Reference',
+                        topic: 'PostgreSQL & SQL',
+                        pinned: false,
+                        createdAt: today,
+                        content: `CREATE TABLE campaign_metrics (\n    tenant_id UUID NOT NULL,\n    campaign_id UUID NOT NULL,\n    active_users INT DEFAULT 0,\n    PRIMARY KEY (tenant_id, campaign_id),\n    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE\n);`
+                    }
+                ];
+
+                // Win Timeline
+                this.state.timeline = [
+                    {
+                        id: 501,
+                        title: 'Launched DoAbhi Personal Learning & Action System!',
+                        topic: 'Java & Spring Boot',
+                        mood: '🚀',
+                        date: today,
+                        xp: 50
+                    },
+                    {
+                        id: 502,
+                        title: 'Mastered Composite Keys & Foreign Key Cascades in PostgreSQL',
+                        topic: 'PostgreSQL & SQL',
+                        mood: '🔥',
+                        date: today,
+                        xp: 25
+                    }
+                ];
+
+                this.saveState();
+            },
+
+            // 2. AUDIO & DOPAMINE ENGINE
+            playVictorySound() {
+                if (!this.state.soundEnabled) return;
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const chord = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                    chord.forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.065);
+                        gain.gain.setValueAtTime(0.13, ctx.currentTime + i * 0.065);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.065 + 0.28);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(ctx.currentTime + i * 0.065);
+                        osc.stop(ctx.currentTime + i * 0.065 + 0.29);
+                    });
+                } catch (e) {}
+            },
+
+            burstConfetti() {
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 80,
+                        spread: 70,
+                        origin: { y: 0.65 },
+                        colors: ['#22d3ee', '#6366f1', '#10b981', '#f59e0b', '#ec4899']
+                    });
+                }
+            },
+
+            celebrateNow(message, xpGain = 25, mood = '🚀') {
+                const today = this.getTodayISO();
+                if (!this.state.activityLog) this.state.activityLog = {};
+                this.state.activityLog[today] = (this.state.activityLog[today] || 0) + 1;
+
+                // Update streak if new day
+                if (this.state.lastActiveDate !== today) {
+                    const y = new Date();
+                    y.setDate(y.getDate() - 1);
+                    const yIso = y.toISOString().split('T')[0];
+                    if (this.state.lastActiveDate === yIso) {
+                        this.state.streak += 1;
+                    } else {
+                        this.state.streak = Math.max(1, this.state.streak);
+                    }
+                    if (this.state.streak > (this.state.bestStreak || 0)) {
+                        this.state.bestStreak = this.state.streak;
+                    }
+                    this.state.lastActiveDate = today;
+                }
+
+                if (xpGain > 0) {
+                    this.state.xp += xpGain;
+                    const badge = document.getElementById('xp-floating-badge');
+                    const text = document.getElementById('xp-floating-text');
+                    text.textContent = `+${xpGain} XP!`;
+                    badge.classList.remove('hidden', 'animate-xp');
+                    badge.classList.add('flex');
+                    void badge.offsetWidth; // trigger reflow
+                    badge.classList.add('animate-xp');
+                    setTimeout(() => {
+                        badge.classList.add('hidden');
+                        badge.classList.remove('flex');
+                    }, 1800);
+                }
+
+                this.burstConfetti();
+                this.playVictorySound();
+                this.showToast(`+${xpGain} XP · DOABHI WIN!`, message, mood);
+                this.saveState();
+                this.renderHeaderAndStats();
+            },
+
+            showToast(title, message, icon = '🚀') {
+                const container = document.getElementById('toast-container');
+                document.getElementById('toast-title').textContent = title;
+                document.getElementById('toast-message').textContent = message;
+                document.getElementById('toast-icon').textContent = icon;
+                container.classList.remove('hidden');
+                container.classList.add('flex');
+                clearTimeout(this.toastTimeout);
+                this.toastTimeout = setTimeout(() => this.hideToast(), 3800);
+            },
+
+            hideToast() {
+                const container = document.getElementById('toast-container');
+                container.classList.add('hidden');
+                container.classList.remove('flex');
+            },
+
+            toggleSound() {
+                this.state.soundEnabled = !this.state.soundEnabled;
+                this.saveState();
+                this.renderHeaderAndStats();
+                this.showToast('Sound Settings', this.state.soundEnabled ? 'Victory synthesizer enabled 🔊' : 'Sound effects muted 🔇', this.state.soundEnabled ? '🔊' : '🔇');
+            },
+
+            // 3. NAVIGATION & RENDERING
+            switchTab(tabId) {
+                this.activeTab = tabId;
+                const tabs = ['tasks', 'shorts', 'revise', 'notes', 'timeline'];
+                tabs.forEach(t => {
+                    const sec = document.getElementById(`view-${t}`);
+                    if (sec) sec.classList.toggle('hidden', t !== tabId);
+
+                    const deskBtn = document.getElementById(`desk-tab-${t}`);
+                    if (deskBtn) {
+                        deskBtn.className = t === tabId
+                            ? 'px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center gap-1.5 bg-gradient-to-r from-cyan-500 to-indigo-600 text-slate-950 shadow-md'
+                            : 'px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800/70';
+                    }
+
+                    const mobBtn = document.getElementById(`mob-tab-${t}`);
+                    if (mobBtn) {
+                        mobBtn.className = t === tabId
+                            ? 'flex flex-col items-center py-1 px-2.5 rounded-xl text-[11px] font-extrabold text-cyan-400 bg-cyan-500/10 transition'
+                            : 'flex flex-col items-center py-1 px-2.5 rounded-xl text-[11px] font-semibold text-slate-400 hover:text-slate-200 transition';
+                    }
+                });
+                this.renderAll();
+            },
+
+            renderAll() {
+                this.renderHeaderAndStats();
+                this.renderGlobalTopicsStrip();
+                this.renderTasks();
+                this.renderShorts();
+                this.renderRevisions();
+                this.renderNotes();
+                this.renderTimelineAndTrophies();
+            },
+
+            getLevelInfo() {
+                const xp = this.state.xp || 0;
+                if (xp < 200) return { level: 1, title: 'Action Initiate', min: 0, max: 200 };
+                if (xp < 450) return { level: 2, title: 'Consistent Builder', min: 200, max: 450 };
+                if (xp < 800) return { level: 3, title: 'Full-Stack Strategist', min: 450, max: 800 };
+                if (xp < 1300) return { level: 4, title: 'Cloud & DSA Ninja', min: 800, max: 1300 };
+                return { level: 5, title: 'DoAbhi Principal Legend', min: 1300, max: 2500 };
+            },
+
+            renderHeaderAndStats() {
+                const lvl = this.getLevelInfo();
+                const pct = Math.min(100, Math.max(6, Math.round(((this.state.xp - lvl.min) / (lvl.max - lvl.min)) * 100)));
+                document.getElementById('header-level-pill').textContent = `Lvl ${lvl.level}`;
+                document.getElementById('header-xp-bar').style.width = `${pct}%`;
+                document.getElementById('header-xp-text').textContent = `${this.state.xp} XP`;
+                document.getElementById('header-streak-count').textContent = `${this.state.streak}d`;
+
+                const today = this.getTodayISO();
+                const todayCount = (this.state.activityLog && this.state.activityLog[today]) || 0;
+                document.getElementById('daily-goal-fraction').textContent = `${todayCount}/5`;
+                document.getElementById('rank-title-banner').textContent = `Level ${lvl.level}: ${lvl.title}`;
+                document.getElementById('today-status-badge').textContent = todayCount >= 5 ? '🏆 Daily Goal Crushed!' : `🔥 ${5 - todayCount} actions to daily goal`;
+
+                // Counts in nav
+                const pendingTasks = this.state.tasks.filter(t => !t.completed).length;
+                document.getElementById('badge-tasks-count').textContent = pendingTasks;
+                document.getElementById('badge-revise-count').textContent = this.state.revisions.length;
+                document.getElementById('badge-notes-count').textContent = this.state.notes.length;
+
+                // Sound button
+                const soundIcon = document.getElementById('sound-toggle-icon');
+                const soundBtn = document.getElementById('sound-toggle-btn');
+                if (this.state.soundEnabled) {
+                    soundIcon.className = 'fa-solid fa-volume-high';
+                    soundBtn.classList.add('text-emerald-400');
+                    soundBtn.classList.remove('text-slate-500');
+                } else {
+                    soundIcon.className = 'fa-solid fa-volume-xmark';
+                    soundBtn.classList.remove('text-emerald-400');
+                    soundBtn.classList.add('text-slate-500');
+                }
+            },
+
+            populateAllTopicSelects() {
+                const selectIds = [
+                    'task-input-topic',
+                    'revise-input-topic',
+                    'note-input-topic',
+                    'win-input-topic',
+                    'short-input-topic'
+                ];
+                selectIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    const currentVal = el.value;
+                    el.innerHTML = this.state.topics.map(t => `<option value="${this.escapeHtml(t)}">${this.escapeHtml(t)}</option>`).join('');
+                    if (currentVal && this.state.topics.includes(currentVal)) {
+                        el.value = currentVal;
+                    }
+                });
+
+                const filterEl = document.getElementById('task-filter-topic');
+                if (filterEl) {
+                    filterEl.innerHTML = `<option value="all">All Topics (${this.state.topics.length})</option>` +
+                        this.state.topics.map(t => `<option value="${this.escapeHtml(t)}">${this.escapeHtml(t)}</option>`).join('');
+                    filterEl.value = this.taskTopicFilter;
+                }
+            },
+
+            renderGlobalTopicsStrip() {
+                const strip = document.getElementById('global-topics-strip');
+                if (!strip) return;
+                strip.innerHTML = this.state.topics.map(t => `
+                    <button onclick="DoAbhi.jumpToTopicShorts('${this.escapeQuotes(t)}')" class="shrink-0 px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-cyan-500/20 border border-slate-700 hover:border-cyan-400/50 text-slate-200 hover:text-cyan-300 text-[11px] font-semibold transition">
+                        ${this.escapeHtml(t)}
+                    </button>
+                `).join('');
+            },
+
+            jumpToTopicShorts(topic) {
+                this.shortsTopicFilter = topic;
+                this.switchTab('shorts');
+            },
+
+            // 4. SECTION 1: DOABHI TASKS & SPOTLIGHT TIMER
+            renderTasks() {
+                // Render Spotlight Task
+                const spotTask = this.state.tasks.find(t => t.id === this.state.spotlightTaskId && !t.completed) ||
+                                 this.state.tasks.find(t => !t.completed);
+                const spotTitle = document.getElementById('spotlight-task-title');
+                const spotMeta = document.getElementById('spotlight-task-meta');
+
+                if (spotTask) {
+                    this.state.spotlightTaskId = spotTask.id;
+                    spotTitle.textContent = spotTask.title;
+                    spotMeta.innerHTML = `<span class="text-cyan-300 font-bold">${this.escapeHtml(spotTask.topic)}</span> · Priority: <strong>${this.escapeHtml(spotTask.priority)}</strong> ${spotTask.notes ? ' — ' + this.escapeHtml(spotTask.notes) : ''}`;
+                } else {
+                    spotTitle.textContent = 'All current tasks completed! 🎉 Add a new learning goal below.';
+                    spotMeta.textContent = 'Or jump over to AbhiShorts for a quick 60-word daily byte!';
+                }
+
+                // Filter buttons styling
+                ['all', 'pending', 'completed'].forEach(st => {
+                    const btn = document.getElementById(`filter-status-${st}`);
+                    if (btn) {
+                        btn.className = this.taskStatusFilter === st
+                            ? 'px-3 py-1.5 rounded-xl text-xs font-extrabold bg-cyan-500 text-slate-950 shadow transition'
+                            : 'px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-950 text-slate-400 hover:text-white border border-slate-800 transition';
+                    }
+                });
+
+                const filtered = this.state.tasks.filter(t => {
+                    const statusOk = this.taskStatusFilter === 'all' ||
+                        (this.taskStatusFilter === 'pending' && !t.completed) ||
+                        (this.taskStatusFilter === 'completed' && t.completed);
+                    const topicOk = this.taskTopicFilter === 'all' || t.topic === this.taskTopicFilter;
+                    return statusOk && topicOk;
+                });
+
+                const container = document.getElementById('tasks-list-container');
+                if (filtered.length === 0) {
+                    container.innerHTML = `
+                        <div class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-10 text-center space-y-2">
+                            <div class="text-3xl">✨</div>
+                            <div class="text-sm font-bold text-slate-300">No tasks matching this filter.</div>
+                            <p class="text-xs text-slate-500">Add a new learning action above to keep your DoAbhi momentum going!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = filtered.map(task => {
+                    const isFocused = !task.completed && task.id === this.state.spotlightTaskId;
+                    const priBadge = task.priority === 'High'
+                        ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                        : (task.priority === 'Quick' ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' : 'bg-amber-500/15 text-amber-300 border-amber-500/30');
+
+                    return `
+                        <div class="bg-slate-900/85 border ${isFocused ? 'border-cyan-400/70 bg-cyan-950/15' : 'border-slate-800 hover:border-slate-700'} rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition shadow-md">
+                            <div class="flex items-start gap-3.5 min-w-0">
+                                <button onclick="DoAbhi.toggleTask(${task.id})" class="mt-0.5 w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition ${task.completed ? 'bg-emerald-500 border-emerald-500 text-slate-950 font-black' : 'border-slate-600 hover:border-cyan-400 bg-slate-950'}" title="Complete Task (+25 XP)">
+                                    ${task.completed ? '<i class="fa-solid fa-check text-xs"></i>' : ''}
+                                </button>
+                                <div class="space-y-1 min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-sm sm:text-base font-bold ${task.completed ? 'line-through text-slate-500' : 'text-white'}">${this.escapeHtml(task.title)}</span>
+                                        ${isFocused ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-cyan-500/20 text-cyan-300 border border-cyan-400/40">🎯 Focused Now</span>' : ''}
+                                    </div>
+                                    ${task.notes ? `<p class="text-xs text-slate-400 leading-relaxed">${this.escapeHtml(task.notes)}</p>` : ''}
+                                    <div class="flex flex-wrap items-center gap-2 pt-1">
+                                        <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">${this.escapeHtml(task.topic)}</span>
+                                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold border ${priBadge}">${this.escapeHtml(task.priority)}</span>
+                                        <span class="text-[11px] text-emerald-400 font-bold">+25 XP</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-end gap-2 shrink-0 border-t sm:border-t-0 border-slate-800/80 pt-2.5 sm:pt-0">
+                                ${!task.completed ? `
+                                    <button onclick="DoAbhi.focusTask(${task.id})" class="px-3 py-1.5 rounded-xl text-xs font-bold ${isFocused ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 hover:bg-slate-700 text-cyan-300'} transition" title="Pin to DoAbhi Spotlight">
+                                        🎯 Focus
+                                    </button>
+                                ` : ''}
+                                <button onclick="DoAbhi.convertTaskToNote(${task.id})" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-semibold transition" title="Save to Reference Notes Vault">
+                                    <i class="fa-solid fa-book-bookmark"></i>
+                                </button>
+                                <button onclick="DoAbhi.deleteTask(${task.id})" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 text-xs transition" title="Delete Task">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            addTask(e) {
+                e.preventDefault();
+                const titleInput = document.getElementById('task-input-title');
+                const topicInput = document.getElementById('task-input-topic');
+                const priorityInput = document.getElementById('task-input-priority');
+                const notesInput = document.getElementById('task-input-notes');
+
+                const title = titleInput.value.trim();
+                if (!title) return;
+
+                const newTask = {
+                    id: Date.now(),
+                    title,
+                    topic: topicInput.value || this.state.topics[0],
+                    priority: priorityInput.value || 'Medium',
+                    notes: notesInput.value.trim(),
+                    completed: false,
+                    createdAt: this.getTodayISO()
+                };
+
+                this.state.tasks.unshift(newTask);
+                this.state.spotlightTaskId = newTask.id;
+                titleInput.value = '';
+                notesInput.value = '';
+
+                this.saveState();
+                this.renderAll();
+                this.showToast('Task Added to DoAbhi!', `Pinned "${title}" to Spotlight. Action now!`, '⚡');
+            },
+
+            toggleTask(id) {
+                const task = this.state.tasks.find(t => t.id === id);
+                if (!task) return;
+                task.completed = !task.completed;
+
+                if (task.completed) {
+                    this.state.timeline.unshift({
+                        id: Date.now(),
+                        title: `Completed Task: ${task.title}`,
+                        topic: task.topic,
+                        mood: '✅',
+                        date: this.getTodayISO(),
+                        xp: 25
+                    });
+                    this.celebrateNow(`Ye yeeyeyee! Crushed "${task.title}"!`, 25, '🎉');
+                } else {
+                    this.saveState();
+                }
+                this.renderAll();
+            },
+
+            focusTask(id) {
+                this.state.spotlightTaskId = id;
+                this.saveState();
+                this.renderTasks();
+                this.showToast('Spotlight Locked 🎯', '25-minute timer ready. Start your sprint!', '🎯');
+            },
+
+            convertTaskToNote(id) {
+                const task = this.state.tasks.find(t => t.id === id);
+                if (!task) return;
+                this.state.notes.unshift({
+                    id: Date.now(),
+                    title: task.title,
+                    topic: task.topic,
+                    pinned: false,
+                    createdAt: this.getTodayISO(),
+                    content: task.notes || `Key notes and reference steps for: ${task.title}`
+                });
+                this.saveState();
+                this.renderAll();
+                this.showToast('Saved to Notes Vault 📓', `"${task.title}" copied to Reference Notes!`, '📓');
+            },
+
+            deleteTask(id) {
+                this.state.tasks = this.state.tasks.filter(t => t.id !== id);
+                this.saveState();
+                this.renderAll();
+            },
+
+            setTaskStatusFilter(status) {
+                this.taskStatusFilter = status;
+                this.renderTasks();
+            },
+
+            setTaskTopicFilter(topic) {
+                this.taskTopicFilter = topic;
+                this.renderTasks();
+            },
+
+            // Pomodoro Focus Timer
+            toggleTimer() {
+                const btn = document.getElementById('pomodoro-start-btn');
+                if (this.timerRunning) {
+                    clearInterval(this.timerInterval);
+                    this.timerRunning = false;
+                    btn.innerHTML = '<i class="fa-solid fa-play"></i><span>Resume</span>';
+                } else {
+                    this.timerRunning = true;
+                    btn.innerHTML = '<i class="fa-solid fa-pause"></i><span>Pause</span>';
+                    this.timerInterval = setInterval(() => {
+                        if (this.timerSeconds > 0) {
+                            this.timerSeconds--;
+                            this.updateTimerDisplay();
+                        } else {
+                            this.completeFocusSprint();
+                        }
+                    }, 1000);
+                }
+            },
+
+            resetTimer() {
+                clearInterval(this.timerInterval);
+                this.timerRunning = false;
+                this.timerSeconds = 25 * 60;
+                this.updateTimerDisplay();
+                document.getElementById('pomodoro-start-btn').innerHTML = '<i class="fa-solid fa-play"></i><span>Start</span>';
+            },
+
+            updateTimerDisplay() {
+                const mins = String(Math.floor(this.timerSeconds / 60)).padStart(2, '0');
+                const secs = String(this.timerSeconds % 60).padStart(2, '0');
+                document.getElementById('pomodoro-display').textContent = `${mins}:${secs}`;
+            },
+
+            completeFocusSprint() {
+                this.resetTimer();
+                const spotTask = this.state.tasks.find(t => t.id === this.state.spotlightTaskId);
+                const label = spotTask ? spotTask.title : 'Deep Focus Sprint';
+                this.state.timeline.unshift({
+                    id: Date.now(),
+                    title: `Completed Focus Sprint: ${label}`,
+                    topic: spotTask ? spotTask.topic : 'Focus Sprint',
+                    mood: '⚡',
+                    date: this.getTodayISO(),
+                    xp: 40
+                });
+                this.celebrateNow(`Ye yeeyeyee! Deep Focus Sprint completed (+40 XP)!`, 40, '⚡');
+                this.renderAll();
+            },
+
+
+            // 5. SECTION 2: ABHISHORTS (INSHORTS-STYLE DAILY 60-WORD TECH BYTES)
+            renderShorts() {
+                // Render topic filter pills
+                const pillsEl = document.getElementById('shorts-topic-pills');
+                const allBtnClass = this.shortsTopicFilter === 'all'
+                    ? 'bg-emerald-500 text-slate-950 font-extrabold'
+                    : 'bg-slate-900 text-slate-300 border border-slate-800 hover:border-emerald-500/40 font-semibold';
+
+                let pillsHtml = `<button onclick="DoAbhi.setShortsTopic('all')" class="shrink-0 px-3.5 py-1.5 rounded-xl text-xs transition ${allBtnClass}">All My Topics (${this.state.shorts.length})</button>`;
+                this.state.topics.forEach(t => {
+                    const count = this.state.shorts.filter(s => s.topic === t).length;
+                    const active = this.shortsTopicFilter === t;
+                    const cls = active
+                        ? 'bg-emerald-500 text-slate-950 font-extrabold'
+                        : 'bg-slate-900 text-slate-300 border border-slate-800 hover:border-emerald-500/40 font-semibold';
+                    pillsHtml += `<button onclick="DoAbhi.setShortsTopic('${this.escapeQuotes(t)}')" class="shrink-0 px-3.5 py-1.5 rounded-xl text-xs transition ${cls}">${this.escapeHtml(t)} (${count})</button>`;
+                });
+                pillsEl.innerHTML = pillsHtml;
+
+                const filtered = this.state.shorts.filter(s => this.shortsTopicFilter === 'all' || s.topic === this.shortsTopicFilter);
+                const feed = document.getElementById('shorts-feed-container');
+
+                if (filtered.length === 0) {
+                    feed.innerHTML = `
+                        <div class="col-span-full bg-slate-900/50 border border-slate-800 rounded-2xl p-8 text-center space-y-3">
+                            <div class="text-3xl">📰</div>
+                            <div class="text-sm font-bold text-white">No 60-word bytes for "${this.escapeHtml(this.shortsTopicFilter)}" yet!</div>
+                            <button onclick="DoAbhi.generateSmartShortForTopic('${this.escapeQuotes(this.shortsTopicFilter)}')" class="px-4 py-2 rounded-xl bg-cyan-500 text-slate-950 font-extrabold text-xs">
+                                ✨ Generate Instant Daily Byte for ${this.escapeHtml(this.shortsTopicFilter)}
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                feed.innerHTML = filtered.map(byte => `
+                    <article class="inshorts-card bg-gradient-to-b from-slate-900 to-slate-950 border ${byte.readToday ? 'border-emerald-500/40' : 'border-slate-800'} rounded-2xl p-5 shadow-xl flex flex-col justify-between space-y-4">
+                        <div class="space-y-3">
+                            <!-- Card Top Meta Bar -->
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                                    ${this.escapeHtml(byte.topic)}
+                                </span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">⚡ 60-Word Byte</span>
+                                    ${byte.readToday ? '<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">Read ✓</span>' : ''}
+                                </div>
+                            </div>
+
+                            <!-- Crisp Headline -->
+                            <h3 class="text-base sm:text-lg font-extrabold text-white leading-snug">
+                                ${this.escapeHtml(byte.title)}
+                            </h3>
+
+                            <!-- 60-Word Summary Body -->
+                            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed whitespace-pre-line">
+                                ${this.escapeHtml(byte.summary)}
+                            </p>
+
+                            <!-- High-Contrast Code / Takeaway Box -->
+                            ${byte.code ? `
+                                <div class="bg-slate-950 border border-slate-800/90 rounded-xl p-3 font-mono text-[11px] text-emerald-300 overflow-x-auto whitespace-pre-wrap">${this.escapeHtml(byte.code)}</div>
+                            ` : ''}
+                        </div>
+
+                        <!-- Bottom 3-Button Inshorts Action Bar -->
+                        <div class="pt-3 border-t border-slate-800/90 flex flex-wrap items-center justify-between gap-2">
+                            <button onclick="DoAbhi.markShortRead(${byte.id})" class="flex-1 py-2 px-3 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 ${byte.readToday ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950'}">
+                                <i class="fa-solid fa-check-double"></i>
+                                <span>${byte.readToday ? 'Read (+15 XP)' : 'Got It (+15 XP)'}</span>
+                            </button>
+                            <button onclick="DoAbhi.saveShortToNotes(${byte.id})" class="py-2 px-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-bold transition flex items-center gap-1.5" title="Save to Reference Notes Vault">
+                                <i class="fa-solid fa-bookmark"></i>
+                                <span>To Notes</span>
+                            </button>
+                            <button onclick="DoAbhi.saveShortToRevise(${byte.id})" class="py-2 px-3 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-purple-300 text-xs font-bold transition flex items-center gap-1.5" title="Add to Topic-Wise Revision">
+                                <i class="fa-solid fa-brain"></i>
+                                <span>To Revise</span>
+                            </button>
+                        </div>
+                    </article>
+                `).join('');
+            },
+
+            setShortsTopic(topic) {
+                this.shortsTopicFilter = topic;
+                this.renderShorts();
+            },
+
+            shuffleShorts() {
+                for (let i = this.state.shorts.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [this.state.shorts[i], this.state.shorts[j]] = [this.state.shorts[j], this.state.shorts[i]];
+                }
+                this.saveState();
+                this.renderShorts();
+                this.showToast('Feed Shuffled 🎲', 'Fresh 60-word daily tech bytes lined up!', '📰');
+            },
+
+            markShortRead(id) {
+                const byte = this.state.shorts.find(s => s.id === id);
+                if (!byte) return;
+                byte.readToday = true;
+                this.state.timeline.unshift({
+                    id: Date.now(),
+                    title: `Read Daily AbhiShort: ${byte.title}`,
+                    topic: byte.topic,
+                    mood: '📰',
+                    date: this.getTodayISO(),
+                    xp: 15
+                });
+                this.celebrateNow(`Daily Byte Absorbed: "${byte.title}"!`, 15, '📰');
+                this.renderAll();
+            },
+
+            saveShortToNotes(id) {
+                const byte = this.state.shorts.find(s => s.id === id);
+                if (!byte) return;
+                this.state.notes.unshift({
+                    id: Date.now(),
+                    title: byte.title,
+                    topic: byte.topic,
+                    pinned: false,
+                    createdAt: this.getTodayISO(),
+                    content: `${byte.summary}${byte.code ? '\n\n' + byte.code : ''}`
+                });
+                this.saveState();
+                this.renderAll();
+                this.showToast('Saved to Notes Vault 📓', `"${byte.title}" saved for future reference!`, '📌');
+            },
+
+            saveShortToRevise(id) {
+                const byte = this.state.shorts.find(s => s.id === id);
+                if (!byte) return;
+                this.state.revisions.unshift({
+                    id: Date.now(),
+                    topic: byte.topic,
+                    title: byte.title,
+                    answer: `${byte.summary}${byte.code ? ' | Example: ' + byte.code : ''}`,
+                    revisions: 1,
+                    lastRevised: this.getTodayISO(),
+                    revealed: false
+                });
+                this.saveState();
+                this.renderAll();
+                this.showToast('Added to Topic Revision 🧠', `"${byte.title}" added to your active-recall deck!`, '🧠');
+            },
+
+            generateSmartShortForTopic(topic) {
+                const targetTopic = topic === 'all' ? this.state.topics[0] : topic;
+                const newCard = {
+                    id: Date.now(),
+                    topic: targetTopic,
+                    title: `${targetTopic}: Core Architecture & Interview Checklist`,
+                    summary: `To master ${targetTopic}, focus on 3 pillars: (1) Internal lifecycle & execution flow, (2) Performance bottlenecks and trade-offs under high concurrency, and (3) Real-world failure recovery patterns. Practice explaining a concrete production scenario in under 60 seconds.`,
+                    code: `// Action Step for ${targetTopic}:\n// Build 1 hands-on example + document 2 edge cases in Reference Notes.`,
+                    readToday: false
+                };
+                this.state.shorts.unshift(newCard);
+                this.saveState();
+                this.renderShorts();
+                this.showToast('New Topic Byte Generated ✨', `Created a daily study byte for ${targetTopic}!`, '✨');
+            },
+
+
+            // 6. SECTION 3: TOPIC-WISE REVISION HUB
+            renderRevisions() {
+                const today = this.getTodayISO();
+                const dueBtn = document.getElementById('revise-due-toggle-btn');
+                const dueTxt = document.getElementById('revise-due-toggle-text');
+                if (this.state.reviseOnlyDueToday) {
+                    dueBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold border bg-amber-500/20 border-amber-400 text-amber-300 transition flex items-center gap-1.5';
+                    dueTxt.textContent = 'Filter: Due Today Only 🔥';
+                } else {
+                    dueBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold border bg-slate-950 border-slate-800 text-slate-300 hover:border-purple-400 transition flex items-center gap-1.5';
+                    dueTxt.textContent = 'Showing: All Topic Cards';
+                }
+
+                // Render Topic Selector Pills with Mastery Count
+                const pillsEl = document.getElementById('revise-topic-pills');
+                let pillsHtml = `<button onclick="DoAbhi.setReviseTopic('all')" class="shrink-0 px-3.5 py-1.5 rounded-xl text-xs transition ${this.reviseTopicFilter === 'all' ? 'bg-purple-600 text-white font-extrabold' : 'bg-slate-900 text-slate-300 border border-slate-800 font-semibold'}">All Topics (${this.state.revisions.length})</button>`;
+                this.state.topics.forEach(t => {
+                    const count = this.state.revisions.filter(r => r.topic === t).length;
+                    const active = this.reviseTopicFilter === t;
+                    pillsHtml += `<button onclick="DoAbhi.setReviseTopic('${this.escapeQuotes(t)}')" class="shrink-0 px-3.5 py-1.5 rounded-xl text-xs transition ${active ? 'bg-purple-600 text-white font-extrabold' : 'bg-slate-900 text-slate-300 border border-slate-800 font-semibold'}">${this.escapeHtml(t)} (${count})</button>`;
+                });
+                pillsEl.innerHTML = pillsHtml;
+
+                const filtered = this.state.revisions.filter(r => {
+                    const topicMatch = this.reviseTopicFilter === 'all' || r.topic === this.reviseTopicFilter;
+                    const dueMatch = !this.state.reviseOnlyDueToday || r.lastRevised !== today;
+                    return topicMatch && dueMatch;
+                });
+
+                const container = document.getElementById('revise-cards-container');
+                if (filtered.length === 0) {
+                    container.innerHTML = `
+                        <div class="col-span-full bg-slate-900/40 border border-slate-800 rounded-2xl p-10 text-center space-y-2">
+                            <div class="text-3xl">🎉</div>
+                            <div class="text-sm font-bold text-white">All concepts for this topic filter are revised!</div>
+                            <p class="text-xs text-slate-400">Add a new concept card above or switch topics to keep sharpening your recall.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = filtered.map(card => {
+                    const revisedToday = card.lastRevised === today;
+                    const stageLabel = card.revisions >= 5 ? '👑 Mastered' : (card.revisions >= 3 ? '🔥 Stage 3' : '🌱 Stage ' + card.revisions);
+                    return `
+                        <div class="bg-slate-900/90 border ${revisedToday ? 'border-emerald-500/40' : 'border-slate-800 hover:border-purple-500/40'} rounded-2xl p-5 flex flex-col justify-between space-y-4 shadow-lg transition">
+                            <div class="space-y-2.5">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-purple-500/15 text-purple-300 border border-purple-500/30">${this.escapeHtml(card.topic)}</span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[11px] font-extrabold text-amber-300">${stageLabel} (${card.revisions}x)</span>
+                                        <button onclick="DoAbhi.deleteRevision(${card.id})" class="text-slate-500 hover:text-rose-400 text-xs"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
+                                </div>
+
+                                <h4 class="text-sm sm:text-base font-extrabold text-white leading-snug">${this.escapeHtml(card.title)}</h4>
+
+                                <!-- Active Recall Answer Box -->
+                                <div class="pt-1">
+                                    ${card.revealed ? `
+                                        <div class="bg-slate-950 border border-purple-500/30 rounded-xl p-3.5 text-xs sm:text-sm text-slate-200 leading-relaxed whitespace-pre-line">${this.escapeHtml(card.answer)}</div>
+                                    ` : `
+                                        <button onclick="DoAbhi.toggleRevealRevision(${card.id})" class="w-full py-3 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-dashed border-slate-700 text-xs font-bold text-slate-400 hover:text-purple-300 transition flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-eye"></i>
+                                            <span>Tap to Reveal Key Answer (Active Recall)</span>
+                                        </button>
+                                    `}
+                                </div>
+                            </div>
+
+                            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                                <span class="text-[11px] text-slate-400">Last: <strong class="${revisedToday ? 'text-emerald-400' : 'text-slate-300'}">${revisedToday ? 'Today ✓' : card.lastRevised}</strong></span>
+                                <div class="flex items-center gap-2">
+                                    ${card.revealed ? `<button onclick="DoAbhi.toggleRevealRevision(${card.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-400 text-xs">Hide</button>` : ''}
+                                    <button onclick="DoAbhi.completeRevision(${card.id})" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow transition flex items-center gap-1.5">
+                                        <i class="fa-solid fa-bolt"></i>
+                                        <span>Revised Today (+30 XP)</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            addRevisionCard(e) {
+                e.preventDefault();
+                const topic = document.getElementById('revise-input-topic').value;
+                const titleInput = document.getElementById('revise-input-title');
+                const ansInput = document.getElementById('revise-input-answer');
+
+                if (!titleInput.value.trim() || !ansInput.value.trim()) return;
+
+                this.state.revisions.unshift({
+                    id: Date.now(),
+                    topic: topic || this.state.topics[0],
+                    title: titleInput.value.trim(),
+                    answer: ansInput.value.trim(),
+                    revisions: 1,
+                    lastRevised: this.getTodayISO(),
+                    revealed: true
+                });
+
+                titleInput.value = '';
+                ansInput.value = '';
+                this.celebrateNow('Concept added to Topic-Wise Revision Hub!', 20, '🧠');
+                this.renderAll();
+            },
+
+            toggleRevealRevision(id) {
+                const card = this.state.revisions.find(r => r.id === id);
+                if (card) {
+                    card.revealed = !card.revealed;
+                    this.renderRevisions();
+                }
+            },
+
+            completeRevision(id) {
+                const card = this.state.revisions.find(r => r.id === id);
+                if (!card) return;
+                card.revisions = (card.revisions || 1) + 1;
+                card.lastRevised = this.getTodayISO();
+                card.revealed = true;
+
+                this.state.timeline.unshift({
+                    id: Date.now(),
+                    title: `Revised (${card.revisions}x): ${card.title}`,
+                    topic: card.topic,
+                    mood: '🧠',
+                    date: this.getTodayISO(),
+                    xp: 30
+                });
+
+                this.celebrateNow(`Ye yeeyeyee! Revised "${card.title}" (${card.revisions}x)!`, 30, '🧠');
+                this.renderAll();
+            },
+
+            deleteRevision(id) {
+                this.state.revisions = this.state.revisions.filter(r => r.id !== id);
+                this.saveState();
+                this.renderAll();
+            },
+
+            setReviseTopic(topic) {
+                this.reviseTopicFilter = topic;
+                this.renderRevisions();
+            },
+
+            setReviseDueFilter(val) {
+                this.state.reviseOnlyDueToday = val;
+                this.renderRevisions();
+            },
+
+
+            // 7. SECTION 4: REFERENCE NOTES VAULT ("NOTES & NODES" FOR FUTURE REFERENCE)
+            renderNotes() {
+                const searchVal = (document.getElementById('notes-search-input')?.value || '').toLowerCase().trim();
+
+                // Topic pills
+                const pillsEl = document.getElementById('notes-topic-pills');
+                let pillsHtml = `<button onclick="DoAbhi.setNotesTopic('all')" class="shrink-0 px-3 py-1.5 rounded-xl text-xs transition ${this.notesTopicFilter === 'all' ? 'bg-amber-500 text-slate-950 font-extrabold' : 'bg-slate-900 text-slate-300 border border-slate-800 font-semibold'}">All (${this.state.notes.length})</button>`;
+                this.state.topics.forEach(t => {
+                    const count = this.state.notes.filter(n => n.topic === t).length;
+                    const active = this.notesTopicFilter === t;
+                    pillsHtml += `<button onclick="DoAbhi.setNotesTopic('${this.escapeQuotes(t)}')" class="shrink-0 px-3 py-1.5 rounded-xl text-xs transition ${active ? 'bg-amber-500 text-slate-950 font-extrabold' : 'bg-slate-900 text-slate-300 border border-slate-800 font-semibold'}">${this.escapeHtml(t)} (${count})</button>`;
+                });
+                pillsEl.innerHTML = pillsHtml;
+
+                const filtered = this.state.notes
+                    .filter(n => {
+                        const topicOk = this.notesTopicFilter === 'all' || n.topic === this.notesTopicFilter;
+                        const searchOk = !searchVal ||
+                            n.title.toLowerCase().includes(searchVal) ||
+                            n.content.toLowerCase().includes(searchVal) ||
+                            n.topic.toLowerCase().includes(searchVal);
+                        return topicOk && searchOk;
+                    })
+                    .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+
+                const container = document.getElementById('notes-grid-container');
+                if (filtered.length === 0) {
+                    container.innerHTML = `
+                        <div class="col-span-full bg-slate-900/40 border border-slate-800 rounded-2xl p-10 text-center space-y-2">
+                            <div class="text-3xl">📓</div>
+                            <div class="text-sm font-bold text-white">No reference notes found.</div>
+                            <p class="text-xs text-slate-400">Type a note above or click "To Notes" on any AbhiShorts card to build your personal reference vault!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = filtered.map(note => `
+                    <div class="bg-slate-900/90 border ${note.pinned ? 'border-amber-500/50' : 'border-slate-800 hover:border-slate-700'} rounded-2xl p-5 flex flex-col justify-between space-y-4 shadow-xl transition">
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">${this.escapeHtml(note.topic)}</span>
+                                    ${note.pinned ? '<span class="text-[11px] font-extrabold text-amber-400">📌 Pinned</span>' : ''}
+                                </div>
+                                <span class="text-[11px] text-slate-500 font-mono">${note.createdAt}</span>
+                            </div>
+
+                            <h3 class="text-base font-extrabold text-white">${this.escapeHtml(note.title)}</h3>
+
+                            <pre class="bg-slate-950 border border-slate-800/90 rounded-xl p-3.5 text-xs font-mono text-slate-200 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-60">${this.escapeHtml(note.content)}</pre>
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="DoAbhi.copyNoteContent(${note.id})" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-copy"></i>
+                                    <span>Copy</span>
+                                </button>
+                                <button onclick="DoAbhi.sendNoteToRevision(${note.id})" class="px-3 py-1.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 text-xs font-bold transition flex items-center gap-1.5" title="Convert Note into a Revision Card">
+                                    <i class="fa-solid fa-brain"></i>
+                                    <span>To Revise</span>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="DoAbhi.togglePinNote(${note.id})" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs" title="Pin/Unpin Note">📌</button>
+                                <button onclick="DoAbhi.editNote(${note.id})" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs" title="Edit Note"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="DoAbhi.deleteNote(${note.id})" class="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 text-xs" title="Delete Note"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            saveReferenceNote(e) {
+                e.preventDefault();
+                const editId = document.getElementById('note-edit-id').value;
+                const titleEl = document.getElementById('note-input-title');
+                const topicEl = document.getElementById('note-input-topic');
+                const contentEl = document.getElementById('note-input-content');
+                const pinnedEl = document.getElementById('note-input-pinned');
+
+                const title = titleEl.value.trim();
+                const content = contentEl.value.trim();
+                if (!title || !content) return;
+
+                if (editId) {
+                    const existing = this.state.notes.find(n => String(n.id) === String(editId));
+                    if (existing) {
+                        existing.title = title;
+                        existing.topic = topicEl.value;
+                        existing.content = content;
+                        existing.pinned = pinnedEl.checked;
+                    }
+                    this.cancelNoteEdit();
+                    this.saveState();
+                    this.renderAll();
+                    this.showToast('Reference Note Updated 📓', `"${title}" saved!`, '✅');
+                } else {
+                    this.state.notes.unshift({
+                        id: Date.now(),
+                        title,
+                        topic: topicEl.value || this.state.topics[0],
+                        content,
+                        pinned: pinnedEl.checked,
+                        createdAt: this.getTodayISO()
+                    });
+                    titleEl.value = '';
+                    contentEl.value = '';
+                    pinnedEl.checked = false;
+                    this.celebrateNow(`Saved "${title}" to Reference Notes Vault!`, 20, '📓');
+                    this.renderAll();
+                }
+            },
+
+            editNote(id) {
+                const note = this.state.notes.find(n => n.id === id);
+                if (!note) return;
+                document.getElementById('note-edit-id').value = note.id;
+                document.getElementById('note-input-title').value = note.title;
+                document.getElementById('note-input-topic').value = note.topic;
+                document.getElementById('note-input-content').value = note.content;
+                document.getElementById('note-input-pinned').checked = !!note.pinned;
+                document.getElementById('note-submit-label').textContent = 'Update Reference Note';
+                document.getElementById('note-cancel-edit-btn').classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            },
+
+            cancelNoteEdit() {
+                document.getElementById('note-edit-id').value = '';
+                document.getElementById('note-input-title').value = '';
+                document.getElementById('note-input-content').value = '';
+                document.getElementById('note-input-pinned').checked = false;
+                document.getElementById('note-submit-label').textContent = 'Save Reference Note (+20 XP)';
+                document.getElementById('note-cancel-edit-btn').classList.add('hidden');
+            },
+
+            togglePinNote(id) {
+                const note = this.state.notes.find(n => n.id === id);
+                if (note) {
+                    note.pinned = !note.pinned;
+                    this.saveState();
+                    this.renderNotes();
+                }
+            },
+
+            copyNoteContent(id) {
+                const note = this.state.notes.find(n => n.id === id);
+                if (!note) return;
+                const temp = document.createElement('textarea');
+                temp.value = `${note.title}\n\n${note.content}`;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+                this.showToast('Copied to Clipboard 📋', `"${note.title}" is ready to paste!`, '📋');
+            },
+
+            sendNoteToRevision(id) {
+                const note = this.state.notes.find(n => n.id === id);
+                if (!note) return;
+                this.state.revisions.unshift({
+                    id: Date.now(),
+                    topic: note.topic,
+                    title: note.title,
+                    answer: note.content,
+                    revisions: 1,
+                    lastRevised: this.getTodayISO(),
+                    revealed: false
+                });
+                this.saveState();
+                this.renderAll();
+                this.showToast('Sent to Revision Deck 🧠', `"${note.title}" is now in Topic-Wise Revision!`, '🧠');
+            },
+
+            deleteNote(id) {
+                this.state.notes = this.state.notes.filter(n => n.id !== id);
+                this.saveState();
+                this.renderAll();
+            },
+
+            setNotesTopic(topic) {
+                this.notesTopicFilter = topic;
+                this.renderNotes();
+            },
+
+
+            // 8. SECTION 5: WIN TIMELINE, 14-DAY HEATMAP & TROPHY CABINET
+            renderTimelineAndTrophies() {
+                document.getElementById('best-streak-label').textContent = `${this.state.bestStreak || this.state.streak} Days`;
+
+                // 14-Day Heatmap
+                const heatContainer = document.getElementById('heatmap-strip-container');
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                let heatHtml = '';
+                for (let i = 13; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    const iso = d.toISOString().split('T')[0];
+                    const count = (this.state.activityLog && this.state.activityLog[iso]) || 0;
+                    const label = i === 0 ? 'Today' : days[d.getDay()];
+                    const boxCls = count === 0
+                        ? 'bg-slate-950 border-slate-800 text-slate-600'
+                        : (count === 1 ? 'bg-emerald-500/30 border-emerald-500/50 text-emerald-200 font-bold' : 'bg-emerald-500 border-emerald-400 text-slate-950 font-black shadow-md shadow-emerald-500/20');
+                    heatHtml += `
+                        <div class="flex flex-col items-center gap-1">
+                            <div title="${iso}: ${count} actions" class="w-full h-9 rounded-xl border flex items-center justify-center text-xs transition ${boxCls}">
+                                ${count > 0 ? count + '✓' : '·'}
+                            </div>
+                            <span class="text-[10px] text-slate-400 font-semibold">${label}</span>
+                        </div>
+                    `;
+                }
+                heatContainer.innerHTML = heatHtml;
+
+                // Trophies
+                const completedTasks = this.state.tasks.filter(t => t.completed).length;
+                const totalRevs = this.state.revisions.reduce((s, r) => s + (r.revisions || 1), 0);
+                const trophies = [
+                    { icon: '⚡', title: 'DoAbhi Starter', desc: 'Complete your first learning task', unlocked: completedTasks >= 1 },
+                    { icon: '🔥', title: '3-Day Momentum', desc: 'Maintain a 3+ day active streak', unlocked: this.state.streak >= 3 },
+                    { icon: '📰', title: 'AbhiShorts Reader', desc: 'Absorb daily 60-word tech bytes', unlocked: this.state.shorts.some(s => s.readToday) },
+                    { icon: '🧠', title: 'Recall Master', desc: 'Complete 5+ topic-wise revisions', unlocked: totalRevs >= 5 },
+                    { icon: '📓', title: 'Knowledge Architect', desc: 'Save 3+ notes in your Reference Vault', unlocked: this.state.notes.length >= 3 },
+                    { icon: '🎯', title: 'Deep Sprinter', desc: 'Reach 500+ Total XP in DoAbhi', unlocked: this.state.xp >= 500 },
+                    { icon: '🏆', title: 'Milestone Maker', desc: 'Log 4+ wins on your timeline', unlocked: this.state.timeline.length >= 4 },
+                    { icon: '👑', title: 'Unstoppable Week', desc: 'Achieve a 7-day learning streak', unlocked: this.state.streak >= 7 }
+                ];
+
+                document.getElementById('trophies-grid-container').innerHTML = trophies.map(tr => `
+                    <div onclick="${tr.unlocked ? `DoAbhi.celebrateNow('Trophy Unlocked: ${this.escapeQuotes(tr.title)}! 🏆', 0, '${tr.icon}')` : ''}" class="border rounded-2xl p-4 flex items-start gap-3.5 transition ${tr.unlocked ? 'bg-gradient-to-br from-slate-900 to-amber-950/25 border-amber-500/50 cursor-pointer hover:scale-[1.02]' : 'bg-slate-900/40 border-slate-800/80 opacity-50'}">
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 border ${tr.unlocked ? 'bg-amber-500/20 border-amber-400/40' : 'bg-slate-950 border-slate-800 grayscale'}">${tr.icon}</div>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <h4 class="text-xs sm:text-sm font-extrabold text-white">${tr.title}</h4>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-0.5">${tr.desc}</p>
+                            <span class="inline-block mt-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full ${tr.unlocked ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}">${tr.unlocked ? 'Unlocked ✓' : 'Locked 🔒'}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Timeline Feed
+                const feedContainer = document.getElementById('timeline-feed-container');
+                feedContainer.innerHTML = this.state.timeline.map(item => `
+                    <div class="relative group">
+                        <div class="absolute -left-[33px] sm:-left-[41px] top-1.5 w-7 h-7 rounded-full bg-slate-900 border-2 border-cyan-400 flex items-center justify-center text-xs shadow">${item.mood || '🚀'}</div>
+                        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between gap-3">
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/15 text-indigo-300">${this.escapeHtml(item.topic || 'Milestone')}</span>
+                                    <span class="text-xs text-slate-400 font-mono">${item.date}</span>
+                                    <span class="text-[10px] font-extrabold text-emerald-400">+${item.xp || 25} XP</span>
+                                </div>
+                                <div class="text-sm font-bold text-white mt-1">${this.escapeHtml(item.title)}</div>
+                            </div>
+                            <button onclick="DoAbhi.deleteTimelineItem(${item.id})" class="text-slate-500 hover:text-rose-400 text-xs"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            addTimelineWin(e) {
+                e.preventDefault();
+                const titleEl = document.getElementById('win-input-title');
+                const topicEl = document.getElementById('win-input-topic');
+                const moodEl = document.getElementById('win-input-mood');
+                const title = titleEl.value.trim();
+                if (!title) return;
+
+                this.state.timeline.unshift({
+                    id: Date.now(),
+                    title,
+                    topic: topicEl.value || 'Milestone',
+                    mood: moodEl.value || '🔥',
+                    date: this.getTodayISO(),
+                    xp: 50
+                });
+                titleEl.value = '';
+                this.celebrateNow(`Ye yeeyeyee! Milestone logged: "${title}"!`, 50, moodEl.value);
+                this.renderAll();
+            },
+
+            deleteTimelineItem(id) {
+                this.state.timeline = this.state.timeline.filter(i => i.id !== id);
+                this.saveState();
+                this.renderTimelineAndTrophies();
+            },
+
+
+            // 9. MODALS: TOPICS, CUSTOM SHORT & PHONE SETUP
+            openTopicModal() {
+                this.renderModalTopicsList();
+                const m = document.getElementById('modal-topics');
+                m.classList.remove('hidden');
+                m.classList.add('flex');
+            },
+
+            renderModalTopicsList() {
+                const container = document.getElementById('modal-topics-list');
+                container.innerHTML = this.state.topics.map(t => `
+                    <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-slate-200">
+                        <span>${this.escapeHtml(t)}</span>
+                        ${this.state.topics.length > 1 ? `<button onclick="DoAbhi.removeTopic('${this.escapeQuotes(t)}')" class="text-slate-500 hover:text-rose-400"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                    </div>
+                `).join('');
+            },
+
+            addTopic(e) {
+                e.preventDefault();
+                const input = document.getElementById('new-topic-input');
+                const name = input.value.trim();
+                if (!name) return;
+                if (!this.state.topics.includes(name)) {
+                    this.state.topics.push(name);
+                    // Automatically generate a starter 60-word AbhiShort card for this new topic!
+                    this.state.shorts.unshift({
+                        id: Date.now(),
+                        topic: name,
+                        title: `${name}: Daily 60-Word Core Concept & Action Prompt`,
+                        summary: `You added "${name}" to your DoAbhi learning topics! To build rapid mastery in ${name}, break it into core fundamentals, hands-on implementation, and common interview edge cases. Tap "To Notes" or "To Revise" below as you learn new concepts each day.`,
+                        code: `// Topic Activated: ${name}\n// Next Action: Complete 1 task & log 1 reference note today!`,
+                        readToday: false
+                    });
+                    this.saveState();
+                    this.populateAllTopicSelects();
+                    this.renderModalTopicsList();
+                    this.renderAll();
+                    this.celebrateNow(`Topic "${name}" added + Daily AbhiShort generated!`, 15, '✨');
+                }
+                input.value = '';
+            },
+
+            removeTopic(name) {
+                if (this.state.topics.length <= 1) return;
+                this.state.topics = this.state.topics.filter(t => t !== name);
+                this.saveState();
+                this.populateAllTopicSelects();
+                this.renderModalTopicsList();
+                this.renderAll();
+            },
+
+            openCustomShortModal() {
+                const m = document.getElementById('modal-custom-short');
+                m.classList.remove('hidden');
+                m.classList.add('flex');
+            },
+
+            saveCustomShort(e) {
+                e.preventDefault();
+                const topic = document.getElementById('short-input-topic').value;
+                const title = document.getElementById('short-input-title').value.trim();
+                const summary = document.getElementById('short-input-summary').value.trim();
+                const code = document.getElementById('short-input-code').value.trim();
+                if (!title || !summary) return;
+
+                this.state.shorts.unshift({
+                    id: Date.now(),
+                    topic: topic || this.state.topics[0],
+                    title,
+                    summary,
+                    code,
+                    readToday: false
+                });
+
+                document.getElementById('short-input-title').value = '';
+                document.getElementById('short-input-summary').value = '';
+                document.getElementById('short-input-code').value = '';
+                this.closeModals();
+                this.celebrateNow(`Published custom 60-word byte: "${title}"!`, 25, '📰');
+                this.renderAll();
+            },
+
+            openSetupModal() {
+                const m = document.getElementById('modal-setup');
+                m.classList.remove('hidden');
+                m.classList.add('flex');
+            },
+
+            closeModals() {
+                ['modal-topics', 'modal-custom-short', 'modal-setup'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.classList.add('hidden');
+                        el.classList.remove('flex');
+                    }
+                });
+            },
+
+            async triggerPWAInstall() {
+                if (this.deferredInstallPrompt) {
+                    this.deferredInstallPrompt.prompt();
+                    await this.deferredInstallPrompt.userChoice;
+                    this.deferredInstallPrompt = null;
+                } else {
+                    this.showToast('Use Browser Menu 📲', 'Tap Chrome\'s 3-Dot Menu (top-right) and tap "Add to Home screen" or "Install app"!', '📲');
+                }
+            },
+
+            exportBackup() {
+                const blob = new Blob([JSON.stringify(this.state, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `doabhi-backup-${this.getTodayISO()}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                this.showToast('Backup Downloaded 📥', 'Your DoAbhi JSON backup is saved!', '📥');
+            },
+
+            importBackup(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        this.state = { ...this.state, ...data };
+                        this.saveState();
+                        this.populateAllTopicSelects();
+                        this.renderAll();
+                        this.closeModals();
+                        this.celebrateNow('DoAbhi Backup Restored Successfully!', 0, '🚀');
+                    } catch (err) {
+                        this.showToast('Import Error', 'Invalid JSON backup file.', '⚠️');
+                    }
+                };
+                reader.readAsText(file);
+            },
+
+            resetData() {
+                localStorage.removeItem(this.storageKey);
+                this.seedRichDefaults(this.getTodayISO());
+                this.populateAllTopicSelects();
+                this.renderAll();
+                this.closeModals();
+                this.showToast('Demo Data Restored 🔄', 'Fresh DoAbhi workspace loaded!', '🔄');
+            },
+
+            escapeHtml(str) {
+                return String(str || '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            },
+
+            escapeQuotes(str) {
+                return String(str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => DoAbhi.init());
+    </script>
+</body>
+</html>
